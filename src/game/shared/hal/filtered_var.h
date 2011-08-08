@@ -1,12 +1,12 @@
 /*
 
-This code is provided under a Creative Commons Attribution license 
+This code is provided under a Creative Commons Attribution license
 http://creativecommons.org/licenses/by/3.0/
 In a gist, you are free to use however you see fit, just please remember
 to mention my name (Torben Sko) at some point.
 
-Please also note that my code is provided AS IS with NO WARRANTY OF ANY KIND, 
-INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
+Please also note that my code is provided AS IS with NO WARRANTY OF ANY KIND,
+INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
 PARTICULAR PURPOSE.
 
 */
@@ -20,13 +20,13 @@ PARTICULAR PURPOSE.
 #include "hal/tunable_var.h"
 
 /*
-This filter smooths the value over a specified duration as defined by a 
-TunableVar. We use a duration rather than a sample size to cater for different 
-hardware speeds. In particular, on a slower machines, we might be incapable 
-of processing every head position dataframe. As such, if we were to use a 
-fixed sample size, on a slower machine, this sample would represent a larger 
-period of period, thereby making the technique feel more smoothed, and 
-therefore sluggish, as compared to when run on a faster machines.
+This filter smooths the value over a specified duration as defined by a
+TunableVar. We use a duration rather than a sample size to cater for different
+hardware speeds. In particular, on slower machines we might be incapable
+of processing every faceAPI dataframe. As such, if we were to use a
+fixed number of samples, collectively they would represent a larger
+period of time, thereby making the technique feel more smoothed, yet less
+responsive on these slower machines.
 */
 class Smoothable
 {
@@ -49,22 +49,23 @@ private:
 
 
 /*
-This filter normalises a value over a specified range, having subtracted a 
-specified minimum from the value first (both values defined by TunableVars). 
-Given this value filtered is used when computing the leaning value, the 
-primary use of the minimum is to introduce a dead zone i.e. an area where the 
-gamers head movements will not cause the player to start performing a lean. In 
-turn, the range is used to dictate how sensitive the leaning is, with a smaller 
-range making for a more sensitive technique.
+This filter normalises a value over a specified range, having subtracted a
+specified minimum from the value first, with both values being defined using
+a TunableVar.
+This value filter is primarily used when computing the leaning value. In
+particular, its use introduces a dead zone i.e. an area where the
+gamers head movements will not cause the player to start performing a lean.
+Likewise, the range is used to dictate how sensitive the leaning is,
+with a smaller range resulting in it being more sensitive.
  */
-class Normalisable 
+class Normalisable
 {
 public:
 	Normalisable();
 
 	void EnableNormalising(TunableVar *range, TunableVar *min = NULL)
-	{ 
-		m_normaliseRange = range; 
+	{
+		m_normaliseRange = range;
 		m_min = min;
 	}
 
@@ -78,14 +79,14 @@ private:
 
 
 /*
-This filter applies an ease-in, ease-out curve (3x^2 - 2x^3 - taken from the 
-Source engine) to the value. A strength value (defined using a TunableVar) is 
-used to control the influcence of the ease-in, ease-out curve. We do this 
-because when used in conjuction with the Normalisable filter, whichs occurrs in 
-relation to the LeaningVar, we tend to prefer muting the ease if no dead zone 
+This filter applies an ease-in, ease-out curve (3x^2 - 2x^3 - taken from the
+Source engine) to the value. A strength value - defined using a TunableVar - is
+used to control the influence of the ease-in, ease-out curve. We do this
+to cater for when it is alongside the Normalisable filter, which occurs within
+the LeaningVar. In particular, we tend to prefer muting the ease if no dead zone
 is used (see Normalisable for more details).
  */
-class Easable 
+class Easable
 {
 public:
 	Easable();
@@ -101,22 +102,22 @@ private:
 
 
 
-// -----------------------------------------
-// Handles Neutralising
-// -----------------------------------------
+/*
+This filter tries to centre the incoming data in order to remove any offsets in
+the data. Such offsets may occur, for instance, if the player sits off to one
+side. It achieves this by computing a running average (i.e. the
+neutral point) and then subtracting this from all subsequent data.
+To prevent the neutral point moving around too much, each new value added to the
+average is weighted based on its distance away from the average, such that
+closer == stronger. In some cases, where we know the neutral point should be
+close to 0, we weight it on its distance from 0 instead. Due to this weighting,
+the filter requires a distance in order to work.
+ */
 class Neutralisable
 {
 public:
 	Neutralisable();
 
-	// When enabled weighted average is calculated and used as an
-	// offset. Each iteration, the average is updated using the current
-	// value. Each value is weighted by its distance to the
-	// average (closer == stronger)
-	//
-	// @param favourZero If this is true, the distance weighting is
-	//					 computed relative to the zero point, not the
-	//					 average.
 	void ConfigureNeutralising(TunableVar *tendency, TunableVar *range, TunableVar *initialPeriod, bool favourZero = false);
 	void Neutralise(float &value, unsigned int frameNum, float frameDuration);
 	void ResetNeutralising();
@@ -135,21 +136,23 @@ private:
 };
 
 
-// -----------------------------------------
-// Handles Scaling
-// -----------------------------------------
+/*
+This filter simply scales a value. It accepts two scales in order to cater for
+both a global scale (used to make scaling multiple things easier) and a
+unique scale.
+ */
 class Scaleable
 {
 public:
 	Scaleable();
 
-	void EnableScaling(TunableVar *scale1, TunableVar *scale2 = NULL) 
+	void EnableScaling(TunableVar *scale1, TunableVar *scale2 = NULL)
 	{
 		m_scale1 = scale1;
 		m_scale2 = scale2;
 	}
 
-	void EnableFadeoutScaling(TunableVar *range) 
+	void EnableFadeoutScaling(TunableVar *range)
 	{
 		m_range = range;
 	}
@@ -164,9 +167,14 @@ private:
 };
 
 
-// -----------------------------------------
-// Handles Fading In/Out (when tracking drops out)
-// -----------------------------------------
+/*
+To cater for tracking losses, this filter fades the data out to 0 on dropouts
+and gradually reintroduces the value when a head position is next acquired.
+By using this filter, it makes the tracking dropouts less disruptive.
+Of note, this filter should only be used if the data has been centred (i.e.
+its neutral point should be 0). As such, this filter needs to be used in
+conjunction with the Neutralisable filter.
+ */
 class Fadable
 {
 public:
@@ -191,9 +199,14 @@ private:
 };
 
 
-// -----------------------------------------
-// A head variable that can fade in/out and tracks when its being used
-// -----------------------------------------
+/*
+The intended way to use the filters described above is to combine them
+together into a class representing a filtered value.
+The BaseHeadVar provides the basic framework for this class.
+In particular, it allows for allows for all sub-classes to be
+uniformly updated and reset, the latter of which is useful in the event the
+player wishes to change their neutral head position.
+ */
 class BaseHeadVar
 {
 public:

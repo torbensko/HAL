@@ -165,6 +165,14 @@ void Neutralisable::ConfigureNeutralising(TunableVar *tendency, TunableVar *rang
 #define EASE(value) \
 	SimpleSpline(clamp((value), 0, 1))
 
+// When enabled weighted average is calculated and used as an
+// offset. Each iteration, the average is updated using the current
+// value. Each value is weighted by its distance to the
+// average (closer == stronger)
+//
+// @param favourZero If this is true, the distance weighting is
+//					 computed relative to the zero point, not the
+//					 average.
 // @return The current update time
 void Neutralisable::Neutralise(float &value, unsigned int frameNum, float frameDuration)
 {

@@ -16,6 +16,11 @@ PARTICULAR PURPOSE.
 
 #include "hal/tunable_var.h"
 
+
+// The settings that define how the HAL technique behaves. Please refer to
+// the filters and HAL technique classes in order to understand the influences
+// of each of these values
+
 extern TunableVar* hal_leanScale_f;
 extern TunableVar* hal_leanOffsetMin_cm;
 extern TunableVar* hal_leanOffsetRange_cm;

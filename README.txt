@@ -5,9 +5,16 @@ author: Torben Sko (git@torbensko.com)
 HAL (Handycam and Leaning) is a head tracking technique for first-person shooter games. The technique has two purposes: it allows the user to lean around corners using their head movements and it adds a shake to the camera in order to make the game feel more realistic. For more details on how it works, please refer to the comments in the source code.
 
 
+Some Notes About the Code...
+
+It's best to consider this code as a prototype, albeit the second version. Per game cycle it performs no less than three line traces. It's the kind of stuff that would make Gabe cry. While I'm sure it's probably possible to delve a little deeper into the Source engine in order to make its integration more efficient, please understand, that wasn't the focus of my work. My objective as driven by my PhD, was to explore whether this stuff could be done, and if so, would anyone would care.
+
+
+
 --- LEGAL STUFF ---
 
 My code (i.e. the files found in the HAL/src/game/shared/hal) are provided under a Creative Commons Attribution license (http://creativecommons.org/licenses/by/3.0/) - so you're free to use them for any purpose. Just note that my code is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
 
 
 --- SETTING IT ALL UP ---
