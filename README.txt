@@ -2,7 +2,7 @@ author: Torben Sko (git@torbensko.com)
 
 --- INTRO ---
 
-HAL (Handycam and Leaning) is a head tracking technique for first-person shooter games. The technique has two purposes: it allow the user to lean around corners using their head movements and it add a shake to the camera to make the game feel more realistic. For more details on how it works, please refer to the comments in the source code.
+HAL (Handycam and Leaning) is a head tracking technique for first-person shooter games. The technique has two purposes: it allows the user to lean around corners using their head movements and it adds a shake to the camera in order to make the game feel more realistic. For more details on how it works, please refer to the comments in the source code.
 
 
 --- LEGAL STUFF ---
@@ -19,7 +19,7 @@ Just to make your life difficult, I haven't included either the FaceAPI or the S
 2.1 Open the Source SDK, select the Source SDK 2007 engine (note: whilst the 2009 engine is listed, at the time of writing this the Source SDK 2009 Base - i.e. the files it requires to run - was not available) and choose "Create a Mod"
 2.2 To make life easier (for me at least), we will set the mod up like I do. Choose to "Modify Half-Life 2 Single Player". For the name pick anything that suits you. For the directory, specify your Source Mods folder e.g. "C:\Program Files (x86)\Steam\steamapps\sourcemods\", except add to the end of this path the name of your mod in lowercase letters and stripped of spaces and special characters. So if you decide to call your mod "Head Tracking", you'll need to add to the end of your path "headtracking". From here on in, I will refer to this folder as your 'project folder'
 
-3 Navigate to this folder and clone this repo to it. Several of the game files should be overwritten in the process, but for the most part, it's pretty unobtrusive
+3 Navigate to this folder and clone this repo to it. If you're having trouble cloning to a non-empty directory, I would suggest just grabbing the zip copy and just manually dragging the files over (you should be able to drag them all over in one operation). When you do this some of the game files will be overwritten, however for the most part it's pretty unobtrusive.
 
 4 In the src folder, open the properties.vsprops file and change the ModFolder so that it matches your project folder path
 
