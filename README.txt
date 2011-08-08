@@ -1,6 +1,16 @@
 author: Torben Sko (git@torbensko.com)
 
---- SET UP ---
+--- INTRO ---
+
+HAL (Handycam and Leaning) is a head tracking technique for first-person shooter games. The technique has two purposes: it allow the user to lean around corners using their head movements and it add a shake to the camera to make the game feel more realistic. For more details on how it works, please refer to the comments in the source code.
+
+
+--- LEGAL STUFF ---
+
+My code (i.e. the files found in the HAL/src/game/shared/hal) are provided under a Creative Commons Attribution license (http://creativecommons.org/licenses/by/3.0/) - so you're free to use them for any purpose. Just note that my code is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+
+--- SETTING IT ALL UP ---
 
 Just to make your life difficult, I haven't included either the FaceAPI or the Source engine in this repo, so you'll need to do a bit of work before you have this puppy up and running. That said, if you follow these steps closely you should have it running pretty quickly.
 
@@ -14,8 +24,8 @@ Just to make your life difficult, I haven't included either the FaceAPI or the S
 4 In the src folder, open the properties.vsprops file and change the ModFolder so that it matches your project folder path
 
 5.1 Grab the non-commercial faceAPI from the Seeing Machines' website. At time of writing this 3.2.6 was the latest publicly available version, however code has also been provided for the upcoming v4 release (see the 'Other Steps' section below)
-5.2 Once you have installed the faceAPI, copy the DLLs and subfolders from "C:\Program Files (x86)\SeeingMachines\FaceTrackingAPI_NC 3.2\API\bin" into a bin folder in the project folder - having not compiled the code yet, you will need to manually create this folder. Likewise, copy the smft32.def, smft32.exp and smft32.lib into a folder called "lib" in your "PROJECT_FOLDER/src/game/shared/hal" folder
-5.3 Copy the "C:\Program Files (x86)\SeeingMachines\FaceTrackingAPI_NC 3.2\API\include" folder into your "/src/game/shared/hal"
+5.2 Once you have installed the faceAPI, copy the DLLs and subfolders from "C:\Program Files (x86)\SeeingMachines\FaceTrackingAPI_NC 3.2\API\bin" into a bin folder in the project folder - having not compiled the code yet, you will need to manually create this folder. Likewise, copy the smft32.def, smft32.exp and smft32.lib into a folder called "lib" in your "YOUR_PROJECT_FOLDER/src/game/shared/hal" folder
+5.3 Copy the "C:\Program Files (x86)\SeeingMachines\FaceTrackingAPI_NC 3.2\API\include" folder into "YOUR_PROJECT_FOLDER/src/game/shared/hal"
 5.4 If you did all the above correctly, you should now have the following directory structure:
 project_folder
 	bin
@@ -51,4 +61,8 @@ A.1 Uncomment the USE_FACEAPI_4 definition in the faceapi.h file.
 A.2 Replace all the faceAPI files mentioned earlier with the faceAPI 4 versions. The only real difference is that instead of copying files named smft32, you will find they are now called smft40 or something similar
 A.3 Finally, open the 'Client Episodic' properties again and under Linker > Input > Additional Dependencies, change the last include from smft32 to smft40
 A.4 Compile and run. Of note, the faceAPI might change between now and when it's publicly released, so there may be a few other issues for you to iron out.
+
+
+
+
 

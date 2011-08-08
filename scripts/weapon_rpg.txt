@@ -1,0 +1,105 @@
+// Missile Launcher
+
+WeaponData
+{
+	// Weapon data is loaded by both the Game and Client DLLs.
+	"printname"	"#HL2_RPG"
+	"viewmodel"				"models/weapons/v_rpg.mdl"
+	"playermodel"			"models/weapons/w_rocket_launcher.mdl"
+	"anim_prefix"			"missile launcher"
+	"bucket"				"4"
+	"bucket_position"		"1"
+	"autoswitchfrom"		"0"
+
+	"clip_size"				"-1"
+	"clip2_size"			"-1"
+	"default_clip"			"3"
+	"default_clip2"			"-1"
+
+	"primary_ammo"			"rpg_round"
+	"secondary_ammo"		"None"
+
+	"autoswitchto"			"0"
+	"weight"				"0"
+	"item_flags"			"2"
+	
+	Leaning
+	{
+		// lean left offsets
+		"lDepth"		  "5"
+		"lHor"			"-15"
+		"lPitch"		 "-4" 
+		"lRoll"			"-30"
+		"lVert"			"-20"
+		"lYaw"			 "-8"
+		
+		// neutral offsets
+		"nDepth"		"-10"
+		"nHor"			 "-8"
+		"nPitch"		 "-4"
+		"nRoll"			  "0"
+		"nVert"			 "-3"
+		"nYaw"			  "0" 
+		
+		// lean right offsets
+		"rDepth"		  "0"
+		"rHor"			 "-7"
+		"rPitch"		  "1"
+		"rRoll"			 "40"
+		"rVert"			 "-4"
+		"rYaw"			  "0"
+		
+		// pullback when looking down
+		"retractDepth"		 "-4"
+		"retractHor"		  "0"
+		"retractPitch"		  "0"
+		"retractRoll"		  "0"
+		"retractVert"		 "-7"
+		"retractYaw"		  "0"
+	}
+
+	// Sounds for the weapon. There is a max of 16 sounds per category (i.e. max 16 "single_shot" sounds)
+	SoundData
+	{
+		"single_shot"		"Weapon_RPG.Single"
+		"single_shot_npc"	"Weapon_RPG.NPC_Single"
+		//Laser on
+		"special1"			"Weapon_RPG.LaserOn"
+		//Laser off
+		"special2"			"Weapon_RPG.LaserOff"
+		"empty"				"Weapon_SMG1.Empty"
+	}
+
+	// Weapon Sprite data is loaded by the Client DLL.
+	TextureData
+	{
+		"weapon"
+		{
+				"font"		"WeaponIcons"
+				"character"	"i"
+		}
+		"weapon_s"
+		{	
+				"font"		"WeaponIconsSelected"
+				"character"	"i"
+		}
+		"ammo"
+		{
+				"font"		"WeaponIcons"
+				"character"	"x"
+		}
+		"crosshair"
+		{
+				"font"		"Crosshairs"
+				"character"	"Q"
+		}
+		"autoaim"
+		{
+				"file"		"sprites/crosshairs"
+				"x"			"48"
+				"y"			"72"
+				"width"		"24"
+				"height"	"24"
+		}
+	}
+}

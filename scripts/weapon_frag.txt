@@ -1,0 +1,97 @@
+WeaponData
+{
+	// Weapon data is loaded by both the Game and Client DLLs.
+	"printname"	"#HL2_Grenade"
+	"viewmodel"				"models/weapons/v_grenade.mdl"
+	"playermodel"			"models/items/grenadeAmmo.mdl"
+	"anim_prefix"			"Grenade"
+	"bucket"				"4"
+	"bucket_position"		"0"
+
+	"clip_size"				"-1"
+	"clip2_size"			"-1"
+	"default_clip"			"1"
+	"default_clip2"			"-1"
+
+	"primary_ammo"			"grenade"
+	"secondary_ammo"		"None"
+
+	"weight"				"1"
+	"item_flags"			"18"	// ITEM_FLAG_NOAUTORELOAD | ITEM_FLAG_EXHAUSTIBLE
+	
+	Leaning
+	{
+		// lean left offsets
+		"lDepth"		  "5"
+		"lHor"			"-14"
+		"lPitch"		 "-4" 
+		"lRoll"			"-50"
+		"lVert"			"-10"
+		"lYaw"			 "-4"
+		
+		// neutral offsets
+		"nDepth"		  "-1"
+		"nHor"			 "-5.5"
+		"nPitch"		 "-4"
+		"nRoll"			  "0"
+		"nVert"			 "-1"
+		"nYaw"			  "0" 
+		
+		// lean right offsets
+		"rDepth"		  "0"
+		"rHor"			 "-7"
+		"rPitch"		  "1"
+		"rRoll"			 "40"
+		"rVert"			 "-4"
+		"rYaw"			  "0"
+		
+		// pullback when looking down
+		"retractDepth"		 "-4"
+		"retractHor"		  "0"
+		"retractPitch"		  "0"
+		"retractRoll"		  "0"
+		"retractVert"		 "-7"
+		"retractYaw"		  "0"
+	}
+
+	// Sounds for the weapon. There is a max of 16 sounds per category (i.e. max 16 "single_shot" sounds)
+	SoundData
+	{
+		"special1"		"WeaponFrag.Roll"
+		"double_shot"	"common/null.wav"
+		"single_shot"	"common/null.wav"
+	}
+
+	// Weapon Sprite data is loaded by the Client DLL.
+	TextureData
+	{
+		"weapon"
+		{
+				"font"		"WeaponIcons"
+				"character"	"k"
+		}
+		"weapon_s"
+		{	
+				"font"		"WeaponIconsSelected"
+				"character"	"k"
+		}
+		"ammo"
+		{
+				"font"		"WeaponIcons"
+				"character"	"v"
+		}
+		"crosshair"
+		{
+				"font"		"Crosshairs"
+				"character"	"Q"
+		}
+		"autoaim"
+		{
+				"file"		"sprites/crosshairs"
+				"x"			"48"
+				"y"			"72"
+				"width"		"24"
+				"height"	"24"
+		}
+	}
+}

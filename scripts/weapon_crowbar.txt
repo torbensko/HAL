@@ -1,0 +1,103 @@
+// Crowbar
+
+WeaponData
+{
+	// Weapon data is loaded by both the Game and Client DLLs.
+	"printname"	"#HL2_Crowbar"
+	"viewmodel"				"models/weapons/v_crowbar.mdl"
+	"playermodel"			"models/weapons/w_crowbar.mdl"
+	"anim_prefix"			"crowbar"
+	"bucket"				"0"
+	"bucket_position"		"0"
+
+	"clip_size"				"-1"
+	"primary_ammo"			"None"
+	"secondary_ammo"		"None"
+
+	"weight"				"0"
+	"item_flags"			"0"
+	
+	Leaning
+	{
+		// lean left offsets
+		"lDepth"		  "5"
+		"lHor"			"-14"
+		"lPitch"		 "-4" 
+		"lRoll"			"-50"
+		"lVert"			"-10"
+		"lYaw"			 "-4"
+		
+		// neutral offsets
+		"nDepth"		  "-1"
+		"nHor"			 "-5.5"
+		"nPitch"		 "-4"
+		"nRoll"			  "0"
+		"nVert"			 "-1"
+		"nYaw"			  "0" 
+		
+		// lean right offsets
+		"rDepth"		  "0"
+		"rHor"			 "-7"
+		"rPitch"		  "1"
+		"rRoll"			 "40"
+		"rVert"			 "-4"
+		"rYaw"			  "0"
+		
+		// pullback when looking down
+		"retractDepth"		 "-4"
+		"retractHor"		  "0"
+		"retractPitch"		  "0"
+		"retractRoll"		  "0"
+		"retractVert"		 "-7"
+		"retractYaw"		  "0"
+	}
+
+	// Sounds for the weapon. There is a max of 16 sounds per category (i.e. max 16 "single_shot" sounds)
+	SoundData
+	{
+		"single_shot"		"Weapon_Crowbar.Single"
+		"melee_hit"			"Weapon_Crowbar.Melee_Hit"
+		"melee_hit_world"	"Weapon_Crowbar.Melee_HitWorld"
+	}
+
+	// Weapon Sprite data is loaded by the Client DLL.
+	TextureData
+	{
+		"weapon"
+		{
+				"font"		"WeaponIcons"
+				"character"	"c"
+		}
+		"weapon_s"
+		{	
+				"font"		"WeaponIconsSelected"
+				"character"	"c"
+		}
+		"ammo"
+		{
+				"font"		"WeaponIcons"
+				"character"	"c"
+		}
+		"ammo2"
+		{
+			"file"		"sprites/640hud7"
+			"x"			"48"
+			"y"			"72"
+			"width"		"24"
+			"height"	"24"
+		}
+		"crosshair"
+		{
+				"font"		"Crosshairs"
+				"character"	"Q"
+		}
+		"autoaim"
+		{
+			"file"		"sprites/crosshairs"
+			"x"			"0"
+			"y"			"48"
+			"width"		"24"
+			"height"	"24"
+		}
+	}
+}

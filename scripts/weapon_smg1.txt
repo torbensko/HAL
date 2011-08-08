@@ -1,0 +1,111 @@
+// Small Machine Gun 1
+
+WeaponData
+{
+	// Weapon data is loaded by both the Game and Client DLLs.
+	"printname"	"#HL2_SMG1"
+	"viewmodel"				"models/weapons/v_smg1.mdl"
+	"playermodel"			"models/weapons/w_smg1.mdl"	//FIXME: 
+	"anim_prefix"			"smg2"
+	"bucket"				"2"
+	"bucket_position"		"0"
+
+	"clip_size"				"45"
+	"clip2_size"			"-1"
+
+	"default_clip"			"45"
+	"default_clip2"			"-1"
+
+	"primary_ammo"			"SMG1"
+	"secondary_ammo"		"SMG1_Grenade"
+
+	"weight"				"3"
+	"item_flags"			"0"
+
+	Leaning
+	{
+		// lean left offsets
+		"lDepth"		  "5"
+		"lHor"			"-14"
+		"lPitch"		 "-4" 
+		"lRoll"			"-50"
+		"lVert"			"-10"
+		"lYaw"			 "-4"
+		
+		// neutral offsets
+		"nDepth"		  "-1"
+		"nHor"			 "-6"
+		"nPitch"		 "-4"
+		"nRoll"			  "0"
+		"nVert"			 "-1"
+		"nYaw"			  "0" 
+		
+		// lean right offsets
+		"rDepth"		 "-1"
+		"rHor"			"-6.5"
+		"rPitch"		  "5"
+		"rRoll"			 "40"
+		"rVert"			 "-6"
+		"rYaw"			  "0"
+		
+		// pullback when looking down
+		"retractDepth"		 "-4"
+		"retractHor"		  "0"
+		"retractPitch"		  "0"
+		"retractRoll"		  "0"
+		"retractVert"		 "-7"
+		"retractYaw"		  "0"
+	}
+
+	// Sounds for the weapon. There is a max of 16 sounds per category (i.e. max 16 "single_shot" sounds)
+	SoundData
+	{
+		"reload"			"Weapon_SMG1.Reload"
+		"reload_npc"		"Weapon_SMG1.NPC_Reload"
+		"empty"				"Weapon_SMG1.Empty"
+		"single_shot"		"Weapon_SMG1.Single"
+		"single_shot_npc"	"Weapon_SMG1.NPC_Single"
+		"special1"			"Weapon_SMG1.Special1"
+		"special2"			"Weapon_SMG1.Special2"
+		"double_shot"		"Weapon_SMG1.Double"
+		"burst"				"Weapon_SMG1.Burst"
+	}
+
+	// Weapon Sprite data is loaded by the Client DLL.
+	TextureData
+	{
+		"weapon"
+		{
+				"font"		"WeaponIcons"
+				"character"	"a"
+		}
+		"weapon_s"
+		{	
+				"font"		"WeaponIconsSelected"
+				"character"	"a"
+		}
+		"ammo"
+		{
+				"font"		"WeaponIcons"
+				"character"	"r"
+		}
+		"ammo2"
+		{
+				"font"		"WeaponIcons"
+				"character"	"t"
+		}
+		"crosshair"
+		{
+				"font"		"Crosshairs"
+				"character"	"Q"
+		}
+		"autoaim"
+		{
+				"file"		"sprites/crosshairs"
+				"x"			"0"
+				"y"			"48"
+				"width"		"24"
+				"height"	"24"
+		}
+	}
+}

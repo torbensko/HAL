@@ -1,0 +1,22 @@
+"GameInfo"
+{
+	game 		"HL2 and HAL"
+	title 		""
+	title2		""
+
+	type		singleplayer_only
+
+	FileSystem
+	{
+		SteamAppId				218 	
+		ToolsAppId				211		
+		
+		SearchPaths
+		{
+			Game				|gameinfo_path|.
+			Game				|all_source_engine_paths|ep2
+			Game				|all_source_engine_paths|episodic
+			Game				|all_source_engine_paths|hl2
+		}
+	}
+}
