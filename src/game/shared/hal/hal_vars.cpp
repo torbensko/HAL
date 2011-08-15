@@ -21,7 +21,6 @@ PARTICULAR PURPOSE.
 
 void NeutralisedVar::Init(int axis)
 {
-	BaseHeadVar::Init();
 	switch(axis) {
 		case AXIS_ROLL:			
 			ConfigureNeutralising(hal_neutralise_tendency_f, hal_leanRollMin_deg, hal_neutralise_establishAvgDuration_s, true);
@@ -30,18 +29,12 @@ void NeutralisedVar::Init(int axis)
 			ConfigureNeutralising(hal_neutralise_tendency_f, hal_leanOffsetMin_cm, hal_neutralise_establishAvgDuration_s);
 			break;
 	}
-	EnableFading(hal_fadingDuration_s);
 }
 
-float NeutralisedVar::Update(float value, unsigned int frameNum, float frameDuration, float now)
+float NeutralisedVar::Update(float value, unsigned int frameNum, float frameDuration)
 {
 	Neutralise(value, frameNum, frameDuration);
-	return FadeIn(value, now);
-}
-
-float NeutralisedVar::Update(float now)
-{
-	return FadeOut(now);
+	return value;
 }
 
 void NeutralisedVar::Reset()
@@ -70,15 +63,20 @@ void HandycamVar::Init(int axis)
 	{
 		case AXIS_YAW:			EnableFadeoutScaling(hal_handyMaxYaw_deg); break;	
 		case AXIS_PITCH:		EnableFadeoutScaling(hal_handyMaxPitch_deg); break;
-
 	}
+	EnableFading(hal_fadingDuration_s);
 }
 
-float HandycamVar::Apply(float value, float now, float adaptiveSmooth)
+float HandycamVar::UpdateWithData(float now, float value, float adaptiveSmooth)
 {
 	Smooth(value, now, adaptiveSmooth);
 	Scale(value);
-	return value;
+	return FadeIn(value, now);
+}
+
+float HandycamVar::UpdateWithoutData(float now)
+{
+	return FadeOut(now);
 }
 
 
@@ -93,9 +91,10 @@ void LeaningVar::Init()
 	EnableScaling(hal_leanScale_f);
 	EnableEasing(hal_leanEasingAmount_p);
 	EnableSmoothing(hal_leanSmoothingDuration_s);
+	EnableFading(hal_fadingDuration_s);
 }
 
-float LeaningVar::Apply(float tilt, float offset, float now)
+float LeaningVar::UpdateWithData(float now, float tilt, float offset)
 {
 	m_tilt.Normalise(tilt);
 	m_offset.Normalise(offset);
@@ -103,5 +102,10 @@ float LeaningVar::Apply(float tilt, float offset, float now)
 	Scale(value);
 	Ease(value);
 	Smooth(value, now);
-	return value;
+	return FadeIn(value, now);
+}
+
+float LeaningVar::UpdateWithoutData(float now)
+{
+	return FadeOut(now);
 }

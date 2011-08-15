@@ -251,8 +251,6 @@ void CViewRender::Init( void )
 	QAngle angles;
 	engine->GetViewAngles( angles );
 	AngleVectors( angles, &m_vecLastFacing );
-
-	m_HAL.Init();		// (torbensko)
 }
 
 
@@ -295,8 +293,6 @@ void CViewRender::Shutdown( void )
 	m_ModulateSingleColor.Shutdown( );
 	beams->ShutdownBeams();
 	tempents->Shutdown();
-
-	m_HAL.Shutdown(); // (torbensko)
 }
 
 
@@ -782,8 +778,6 @@ void CViewRender::Render( vrect_t *rect )
 {
 	Assert(s_DbgSetupOrigin == m_View.origin);
 	Assert(s_DbgSetupAngles == m_View.angles);
-
-	m_HAL.Update();		// put somewhere better (torbensko)
 
 	VPROF_BUDGET( "CViewRender::Render", "CViewRender::Render" );
 

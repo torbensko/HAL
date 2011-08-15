@@ -329,16 +329,3 @@ float Fadable::FadeOut(float now)
 	return m_lastFadeOutValue;
 }
 
-
-
-
-// -----------------------------------------
-// A basic head variable
-// -----------------------------------------
-std::vector<BaseHeadVar*> filteredVars;
-std::vector<BaseHeadVar*>* GetGlobalVars() { return &filteredVars; }
-
-void BaseHeadVar::Init()
-{
-	filteredVars.push_back(this);
-}

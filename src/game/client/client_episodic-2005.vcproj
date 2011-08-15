@@ -2857,6 +2857,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\shared\hal\hal_Source.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\shared\hal\hal_vars.cpp"
 					>
 				</File>

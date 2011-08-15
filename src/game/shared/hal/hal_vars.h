@@ -16,11 +16,11 @@ PARTICULAR PURPOSE.
 
 #include "hal/filtered_var.h"
 
-#define AXIS_YAW            0
-#define AXIS_PITCH            1
-#define AXIS_ROLL            2
-#define AXIS_VERTICAL        3
-#define AXIS_HORIZONTAL        4
+#define AXIS_YAW			0
+#define AXIS_PITCH			1
+#define AXIS_ROLL			2
+#define AXIS_VERTICAL		3
+#define AXIS_HORIZONTAL		4
 
 /*
 The NeutralisedVar takes a piece of running head data (pitch, roll, etc)
@@ -28,48 +28,44 @@ and neutralises it.
 It does so by computing a running average and subtracting it from the incoming
 data. Having done this the head data can be considered to be centred
 i.e. when held in a neutral position, the head data should be 0.
-This class is also responsible for handling dropouts (i.e. when
-no data comes in), by fading the running the data in and out appropriately.
 
 See also:
-    BaseHeadVar
-    Neutralisable
-    Fadable
+	Neutralisable
 */
-class NeutralisedVar :    public BaseHeadVar,
-                        public Neutralisable,
-                        public Fadable
+class NeutralisedVar :  public Neutralisable
 {
 public:
-    NeutralisedVar() :    BaseHeadVar(),
-                        Neutralisable(),
-                        Fadable() {}
+	NeutralisedVar() :  Neutralisable() {}
 
-    void Init(int axis);
-    float Update(float value, unsigned int frameNum, float frameDuration, float now);
-    float Update(float now);
-    void Reset();
+	void Init(int axis);
+	float Update(float value, unsigned int frameNum, float frameDuration);
+	void Reset();
 };
 
 
 /*
 The HandycamVar takes a centred head variable (i.e the result from a
 NeutralisedVar) and prepares it so that it is ready to be applied to the virtual
-camera. In particular, it smooths the value and scales it.
+camera. It does so by smoothing it and scaling it. It also reduces the impact of
+dropouts by fading the stream of data in/out between periods of tracking and no-tracking.
 
 See also:
-    Smoothable
-    Scaleable
+	Smoothable
+	Scaleable
+	Fadable
 */
 class HandycamVar : public Smoothable,
-                    public Scaleable
+					public Scaleable,
+					public Fadable
 {
 public:
-    HandycamVar() : Smoothable(),
-                    Scaleable() {}
+	HandycamVar() : Smoothable(),
+					Scaleable(),
+					Fadable() {}
 
-    void Init(int axis);
-    float Apply(float value, float now, float adaptiveSmooth = 1);
+	void Init(int axis);
+	float UpdateWithData(float now, float value, float adaptiveSmooth = 1);
+	float UpdateWithoutData(float now);
 };
 
 
@@ -77,32 +73,37 @@ public:
 The LeaningVar class takes the head roll and horizontal offset, both of which
 should have already be centred around the neutral position (i.e taken from a
 NeutralisedVar) and computes the lean amount. It does this by normalising
-each over a predefined range, having first allowed for an initial dead zone.
+each over a predefined range, taking into account an initial dead zone.
 The two values are then added together, scaled (initially with a scalar and then
 with a ease-in/ease-out curve) and then smoothed. This computed lean values is
-then subsequently used for offsetting the player, among other things.
+then subsequently used to determine how much to offset the player, spin the weapon
+and alter the field-of-view.
 
 See also:
-    Normalisable
-    Smoothable
-    Scalable
-    Easable
+	Normalisable
+	Smoothable
+	Scalable
+	Easable
+	Fadable
  */
-class LeaningVar :    public Smoothable,
-                    public Scaleable,
-                    public Easable
+class LeaningVar :  public Smoothable,
+					public Scaleable,
+					public Easable,
+					public Fadable
 {
 public:
-    LeaningVar() :    Smoothable(),
-                    Scaleable(),
-                    Easable() {}
+	LeaningVar() :  Smoothable(),
+					Scaleable(),
+					Easable(),
+					Fadable() {}
 
-    void Init();
-    float Apply(float tilt, float offset, float now);
+	void Init();
+	float UpdateWithData(float now, float tilt, float offset);
+	float UpdateWithoutData(float now);
 
 private:
-    Normalisable m_tilt;
-    Normalisable m_offset;
+	Normalisable m_tilt;
+	Normalisable m_offset;
 };
 
 

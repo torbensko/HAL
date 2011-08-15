@@ -62,28 +62,21 @@ void HALTechnique::Update()
 
 	if(data.h_confidence > 0.0f)
 	{
-		m_neutralised[AXIS_ROLL] = m_neutraliseVars[AXIS_ROLL].Update(
-			RAD_TO_DEG(data.h_roll), data.h_frameNum, data.h_frameDuration, now);
-		m_neutralised[AXIS_PITCH] = m_neutraliseVars[AXIS_PITCH].Update(
-			RAD_TO_DEG(data.h_pitch), data.h_frameNum, data.h_frameDuration, now);
-		m_neutralised[AXIS_YAW] = m_neutraliseVars[AXIS_YAW].Update(
-			RAD_TO_DEG(data.h_yaw), data.h_frameNum, data.h_frameDuration, now);
-		m_neutralised[AXIS_HORIZONTAL] = m_neutraliseVars[AXIS_HORIZONTAL].Update(
-			METERS_TO_CMS(data.h_width), data.h_frameNum, data.h_frameDuration, now);
-		m_neutralised[AXIS_VERTICAL] = m_neutraliseVars[AXIS_VERTICAL].Update(
-			METERS_TO_CMS(data.h_height), data.h_frameNum, data.h_frameDuration, now);
+		m_neutralised[AXIS_ROLL]		= m_neutraliseVars[AXIS_ROLL].Update(		RAD_TO_DEG(data.h_roll), data.h_frameNum, data.h_frameDuration);
+		m_neutralised[AXIS_PITCH]		= m_neutraliseVars[AXIS_PITCH].Update(		RAD_TO_DEG(data.h_pitch), data.h_frameNum, data.h_frameDuration);
+		m_neutralised[AXIS_YAW]			= m_neutraliseVars[AXIS_YAW].Update(		RAD_TO_DEG(data.h_yaw), data.h_frameNum, data.h_frameDuration);
+		m_neutralised[AXIS_HORIZONTAL]	= m_neutraliseVars[AXIS_HORIZONTAL].Update(	METERS_TO_CMS(data.h_width), data.h_frameNum, data.h_frameDuration);
+		m_neutralised[AXIS_VERTICAL]	= m_neutraliseVars[AXIS_VERTICAL].Update(	METERS_TO_CMS(data.h_height), data.h_frameNum, data.h_frameDuration);
+		
+		m_headLeanAmount = m_leaningVarAmount.UpdateWithData(
+			now, m_neutralised[AXIS_ROLL], m_neutralised[AXIS_HORIZONTAL]);
 	}
 	else
 	{
-		m_neutralised[AXIS_ROLL]		= m_neutraliseVars[AXIS_ROLL].Update(now);
-		m_neutralised[AXIS_PITCH]		= m_neutraliseVars[AXIS_PITCH].Update(now);
-		m_neutralised[AXIS_YAW]			= m_neutraliseVars[AXIS_YAW].Update(now);
-		m_neutralised[AXIS_HORIZONTAL]	= m_neutraliseVars[AXIS_HORIZONTAL].Update(now);
-		m_neutralised[AXIS_VERTICAL]	= m_neutraliseVars[AXIS_VERTICAL].Update(now);
+		m_headLeanAmount = m_leaningVarAmount.UpdateWithoutData(now);
 	}
 
 	// work out the leaning amount:
-	m_headLeanAmount = m_leaningVarAmount.Apply(m_neutralised[AXIS_ROLL], m_neutralised[AXIS_HORIZONTAL], now);
 	m_headLeanAmount = clamp(m_headLeanAmount, -1, 1);
 
 	// we surpress the yaw and pitch when rolling to ensure they don't interfear with the leaning technique
@@ -108,16 +101,22 @@ void HALTechnique::Update()
 
 	adaptive_p = adaptive;
 
-	m_handycam[AXIS_ROLL] = m_handyVars[AXIS_ROLL].Apply(
-		m_neutralised[AXIS_ROLL], now);
-	m_handycam[AXIS_PITCH] = m_handyVars[AXIS_PITCH].Apply(
-		m_neutralised[AXIS_PITCH]*surpress,	now, adaptive);
-	m_handycam[AXIS_YAW] = m_handyVars[AXIS_YAW].Apply(
-		m_neutralised[AXIS_YAW]*surpress, now, adaptive);
-	m_handycam[AXIS_HORIZONTAL] = m_handyVars[AXIS_HORIZONTAL].Apply(
-		m_neutralised[AXIS_HORIZONTAL], now);
-	m_handycam[AXIS_VERTICAL] = m_handyVars[AXIS_VERTICAL].Apply(
-		m_neutralised[AXIS_VERTICAL], now);
+	if(data.h_confidence > 0.0f)
+	{
+		m_handycam[AXIS_PITCH]		= m_handyVars[AXIS_PITCH].UpdateWithData(now,		m_neutralised[AXIS_PITCH]*surpress, adaptive);
+		m_handycam[AXIS_YAW]		= m_handyVars[AXIS_YAW].UpdateWithData(now,			m_neutralised[AXIS_YAW]*surpress, adaptive);
+		m_handycam[AXIS_ROLL]		= m_handyVars[AXIS_ROLL].UpdateWithData(now,		m_neutralised[AXIS_ROLL]);
+		m_handycam[AXIS_HORIZONTAL]	= m_handyVars[AXIS_HORIZONTAL].UpdateWithData(now,	m_neutralised[AXIS_HORIZONTAL]);
+		m_handycam[AXIS_VERTICAL]	= m_handyVars[AXIS_VERTICAL].UpdateWithData(now,	m_neutralised[AXIS_VERTICAL]);
+	}
+	else
+	{
+		m_handycam[AXIS_PITCH]		= m_handyVars[AXIS_PITCH].UpdateWithoutData(now);
+		m_handycam[AXIS_YAW]		= m_handyVars[AXIS_YAW].UpdateWithoutData(now);
+		m_handycam[AXIS_ROLL]		= m_handyVars[AXIS_ROLL].UpdateWithoutData(now);
+		m_handycam[AXIS_HORIZONTAL]	= m_handyVars[AXIS_HORIZONTAL].UpdateWithoutData(now);
+		m_handycam[AXIS_VERTICAL]	= m_handyVars[AXIS_VERTICAL].UpdateWithoutData(now);
+	}
 
 	p_now = now;
 }

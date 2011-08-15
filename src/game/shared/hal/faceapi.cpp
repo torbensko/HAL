@@ -128,6 +128,16 @@ void FaceAPI::SetData(smEngineHeadPoseData head_pose)
 }
 #endif
 
+FaceAPI* GetFaceAPI() 
+{
+	if(_faceapi == NULL)
+	{
+		_faceapi = new FaceAPI();
+		_faceapi->Init();
+	}
+	return _faceapi;
+}
+
 FaceAPI::FaceAPI() 
 {
 	// too early to initialise the actual tracking

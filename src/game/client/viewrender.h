@@ -497,7 +497,6 @@ private:
 
 	
 private:													// (torbensko)
-	HALTechnique	m_HAL;	
 	void			ApplyHeadShake(CViewSetup *view);
 	
 };

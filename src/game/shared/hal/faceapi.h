@@ -78,4 +78,6 @@ protected:
 	int				m_frame;
 };
 
+FaceAPI* GetFaceAPI();
+
 #endif FACEAPI_H

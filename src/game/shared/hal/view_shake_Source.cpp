@@ -51,7 +51,7 @@ ConVar hal_leanFOV("hal_leanFOV", "12", FCVAR_ARCHIVE);
 
 void CViewRender::ApplyHeadShake(CViewSetup *view)
 {
-	CameraOffsets shake = m_HAL.GetCameraShake();
+	CameraOffsets shake = UTIL_GetHandycamShake();
 
 	view->angles[PITCH]		-= shake.pitch;
 	view->angles[YAW]		+= shake.yaw;
@@ -69,7 +69,7 @@ void CViewRender::ApplyHeadShake(CViewSetup *view)
 	if(pPlayer && pPlayer->IsAlive())
 	{
 		float aspectRatio	  = engine->GetScreenAspectRatio() * 0.75f;
-		float leanFov		  = fabs(m_HAL.GetLeanAmount()) * hal_leanFOV.GetFloat() * aspectRatio;
+		float leanFov		  = fabs(UTIL_GetLeanAmount()) * hal_leanFOV.GetFloat() * aspectRatio;
 		view->fov			 -= leanFov;
 		view->fovViewmodel	 -= leanFov;
 	}

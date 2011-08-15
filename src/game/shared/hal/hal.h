@@ -31,19 +31,18 @@ that people will tend to use the head tracking under less-than-ideal conditions
 (low light, unfocused camera, obscured view, etc). As such, it's important that our
 technique be robust, whilst still remaining responsive.  
 
-To achieve these goals, the following approach has been adopted; Firstly we
+To achieve these goals, the following approach has been adopted. Firstly we
 establish a neutral position using a running average. This neutral position is
-subtracted from the head data in order to centre the user's head position.
-Using this centred data, we then smooth it and scale it to create the camera
+subtracted from the head data so that the resulting data is centred around 0.
+This centred data is then smoothed and scaled in order to create the camera
 offset. To compute the leaning amount, we take the centred head roll and
 horizontal offset and normalise each over a predefined range, incorporating an
 initial dead zone in the process. The two values are then added together, scaled
-(initially with a scalar and then with a ease-in/ease-out curve) and then
-smoothed.
+(initially with a scalar and then with a ease-in/ease-out curve) and smoothed.
 
 The technique is achieved using three composite filters, namely a HandycamVar
 (5 instances, 1 for each axis) and a LeaningVar, both of which used the output
-produced by 5 NeutralisedVars. In turn, theses composite filters are constructed
+produced by 5 NeutralisedVars. These composite filters are constructed
 from several basic filters, namely: Neutralisable, Normalisable,
 Fadable, Smoothable, Scalable and Easable. To tune the behaviour of these basic
 filters, and in turn the whole technique, they accept several tunable variables,

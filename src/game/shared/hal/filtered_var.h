@@ -199,29 +199,4 @@ private:
 };
 
 
-/*
-The intended way to use the filters described above is to combine them
-together into a class representing a filtered value.
-The BaseHeadVar provides the basic framework for this class.
-In particular, it allows for allows for all sub-classes to be
-uniformly updated and reset, the latter of which is useful in the event the
-player wishes to change their neutral head position.
- */
-class BaseHeadVar
-{
-public:
-	BaseHeadVar() {}
-	
-	virtual void Init();
-	virtual float Update(float now) = 0;
-	virtual float Update(float value, unsigned int frameNum, float frameDuration, float now) = 0;
-	virtual void Reset() = 0;
-
-protected:
-	float m_currentUpdateTime;
-	float m_previousUpdateTime;
-};
-
-std::vector<BaseHeadVar*>* GetGlobalVars();
-
 #endif
