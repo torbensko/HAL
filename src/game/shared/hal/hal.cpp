@@ -2,7 +2,7 @@
 
 This code is provided under a Creative Commons Attribution license 
 http://creativecommons.org/licenses/by/3.0/
-In a gist, you are free to use however you see fit, just please remember
+As such you are free to use the code for any purpose as long as you remember 
 to mention my name (Torben Sko) at some point.
 
 Please also note that my code is provided AS IS with NO WARRANTY OF ANY KIND, 
@@ -79,16 +79,16 @@ void HALTechnique::Update()
 	// work out the leaning amount:
 	m_headLeanAmount = clamp(m_headLeanAmount, -1, 1);
 
-	// we surpress the yaw and pitch when rolling to ensure they don't interfear with the leaning technique
-	float surpress = 1;
+	// we suppress the yaw and pitch when rolling to ensure they don't interfear with the leaning technique
+	float suppress = 1;
 	if(hal_leanStabilisation_p->GetFloat() > 0)
-		surpress = 1 - min(1, hal_leanStabilisation_p->GetFloat()/100.0f * fabs(m_headLeanAmount));
+		suppress = 1 - min(1, hal_leanStabilisation_p->GetFloat()/100.0f * fabs(m_headLeanAmount));
 
 	static float adaptive_p = 1;
 	float averageConfidence = data.h_confidence;
 	m_adaptiveConfidence.Smooth(averageConfidence, now);
 
-	// we surpress the handycam based on the confidence
+	// we suppress the handycam based on the confidence
 	float c = 1 - (averageConfidence - CONF_SMOOTHING_RANGE_MIN)/CONF_SMOOTHING_RANGE;
 	c = max(0, c);
 	float adaptMagnitude = hal_handySmoothingConfidence_p->GetFloat() / 100.0f;
@@ -103,8 +103,8 @@ void HALTechnique::Update()
 
 	if(data.h_confidence > 0.0f)
 	{
-		m_handycam[AXIS_PITCH]		= m_handyVars[AXIS_PITCH].UpdateWithData(now,		m_neutralised[AXIS_PITCH]*surpress, adaptive);
-		m_handycam[AXIS_YAW]		= m_handyVars[AXIS_YAW].UpdateWithData(now,			m_neutralised[AXIS_YAW]*surpress, adaptive);
+		m_handycam[AXIS_PITCH]		= m_handyVars[AXIS_PITCH].UpdateWithData(now,		m_neutralised[AXIS_PITCH]*suppress, adaptive);
+		m_handycam[AXIS_YAW]		= m_handyVars[AXIS_YAW].UpdateWithData(now,			m_neutralised[AXIS_YAW]*suppress, adaptive);
 		m_handycam[AXIS_ROLL]		= m_handyVars[AXIS_ROLL].UpdateWithData(now,		m_neutralised[AXIS_ROLL]);
 		m_handycam[AXIS_HORIZONTAL]	= m_handyVars[AXIS_HORIZONTAL].UpdateWithData(now,	m_neutralised[AXIS_HORIZONTAL]);
 		m_handycam[AXIS_VERTICAL]	= m_handyVars[AXIS_VERTICAL].UpdateWithData(now,	m_neutralised[AXIS_VERTICAL]);
