@@ -1,6 +1,6 @@
 "GameInfo"
 {
-	game 		"HL2 and HAL"
+	game 		"HAL Demo"
 	title 		""
 	title2		""
 
