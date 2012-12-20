@@ -1,4 +1,4 @@
-*.sublime.*
+*.sublime-*
 DownloadLists/*
 bin/*
 run_*.bat

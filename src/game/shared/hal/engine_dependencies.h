@@ -14,9 +14,12 @@ PARTICULAR PURPOSE.
 #ifndef HAL_DEPENDENCIES_H
 #define HAL_DEPENDENCIES_H
 
+#include "convar.h"
+
 extern float getCurrentTime();
 
 #define engine_printf DevMsg
 #define engine_sprintf V_snprintf
+#define TunableVar ConVar
 
 #endif

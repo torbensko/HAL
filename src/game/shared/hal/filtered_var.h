@@ -16,8 +16,7 @@ PARTICULAR PURPOSE.
 
 #include <map>
 #include <vector>
-
-#include "hal/tunable_var.h"
+#include "engine_dependencies.h"
 
 /*
 This filter smooths the value over a specified duration as defined by a

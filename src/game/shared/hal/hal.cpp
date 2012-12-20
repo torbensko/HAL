@@ -14,7 +14,6 @@ PARTICULAR PURPOSE.
 #include "cbase.h"
 
 #include "hal/hal.h"
-#include "hal/hal_settings.h"
 #include "hal/util.h"
 
 #define CONF_SMOOTHING_RANGE_MIN		0.48
@@ -40,7 +39,7 @@ void HALTechnique::Init()
 	m_handyVars[AXIS_HORIZONTAL].Init(AXIS_HORIZONTAL);
 	m_handyVars[AXIS_VERTICAL].Init(AXIS_VERTICAL);
 
-	m_adaptiveConfidence.EnableSmoothing(hal_handyConfSmoothingDuration_f);
+	m_adaptiveConfidence.EnableSmoothing(&hal_handyConfSmoothingDuration_f);
 
 	m_leaningVarAmount.Init();
 }
@@ -81,8 +80,8 @@ void HALTechnique::Update()
 
 	// we suppress the yaw and pitch when rolling to ensure they don't interfear with the leaning technique
 	float suppress = 1;
-	if(hal_leanStabilisation_p->GetFloat() > 0)
-		suppress = 1 - min(1, hal_leanStabilisation_p->GetFloat()/100.0f * fabs(m_headLeanAmount));
+	if(hal_leanStabilisation_p.GetFloat() > 0)
+		suppress = 1 - min(1, hal_leanStabilisation_p.GetFloat()/100.0f * fabs(m_headLeanAmount));
 
 	static float adaptive_p = 1;
 	float averageConfidence = data.h_confidence;
@@ -91,7 +90,7 @@ void HALTechnique::Update()
 	// we suppress the handycam based on the confidence
 	float c = 1 - (averageConfidence - CONF_SMOOTHING_RANGE_MIN)/CONF_SMOOTHING_RANGE;
 	c = max(0, c);
-	float adaptMagnitude = hal_handySmoothingConfidence_p->GetFloat() / 100.0f;
+	float adaptMagnitude = hal_handySmoothingConfidence_p.GetFloat() / 100.0f;
 	float adaptive = 1 + c * adaptMagnitude;
 
 	// we don't just immediately remove the adapting, we ease it out over a second
