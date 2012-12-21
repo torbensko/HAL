@@ -2861,6 +2861,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\shared\hal\settings_panel.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\shared\hal\settings_panel.h"
+					>
+				</File>
+				<File
 					RelativePath="..\shared\hal\util.h"
 					>
 				</File>

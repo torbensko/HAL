@@ -16,30 +16,33 @@ PARTICULAR PURPOSE.
 #include "hal/hal_vars.h"
 
 
-TunableVar hal_leanScale_f						= TunableVar("hal_leanScale_f",							"1.0");
-TunableVar hal_leanOffsetMin_cm					= TunableVar("hal_leanOffsetMin_cm",						"2.0");
-TunableVar hal_leanOffsetRange_cm				= TunableVar("hal_leanOffsetRange_cm",					"15.0");
-TunableVar hal_leanRollMin_deg					= TunableVar("hal_leanRollMin_deg",						"3.0");
-TunableVar hal_leanRollRange_deg				= TunableVar("hal_leanRollRange_deg",					"30.0");
-TunableVar hal_leanStabilisation_p				= TunableVar("hal_leanStabilisation_p",					"50.0");
-TunableVar hal_leanSmoothingDuration_s			= TunableVar("hal_leanSmoothingDuration_s",				"0.2");
-TunableVar hal_leanEasingAmount_p				= TunableVar("hal_leanEasingAmount_p",					"100.0");
-											 
-TunableVar hal_handyScale_f						= TunableVar("hal_handyScale_f",							"1.0");
-TunableVar hal_handyScalePitch_f				= TunableVar("hal_handyScalePitch_f",					"1.0");
-TunableVar hal_handyScaleRoll_f					= TunableVar("hal_handyScaleRoll_f",						"1.0");
-TunableVar hal_handyScaleYaw_f					= TunableVar("hal_handyScaleYaw_f",						"1.0");
-TunableVar hal_handyScaleOffsets_f				= TunableVar("hal_handyScaleOffsets_f",					"1.0");
-TunableVar hal_handyMaxPitch_deg				= TunableVar("hal_handyMaxPitch_deg",					"0.0");
-TunableVar hal_handyMaxYaw_deg					= TunableVar("hal_handyMaxYaw_deg",						"0.0");
-TunableVar hal_handyConfSmoothingDuration_f		= TunableVar("hal_handyConfSmoothingDuration_f",			"0.5");
-TunableVar hal_handySmoothingDuration_s			= TunableVar("hal_handySmoothingDuration_s",				"0.2");
-TunableVar hal_handySmoothingConfidence_p		= TunableVar("hal_handySmoothingConfidence_p",			"100.0");
-											 
-TunableVar hal_neutralise_tendency_f			= TunableVar("hal_neutralise_tendency_f",				"1");
-TunableVar hal_neutralise_establishAvgDuration_s= TunableVar("hal_neutralise_establishAvgDuration_s",	"1");
+#define CREATE_CONVAR(name, val, min, max) \
+	TunableVar hal_##name = TunableVar("hal_"#name, #val, FCVAR_ARCHIVE, "", true, min, true, max);
 
-TunableVar hal_fadingDuration_s					= TunableVar("hal_fadingDuration_s",						"2");
+CREATE_CONVAR(leanScale_f,							1, 0, 2);
+CREATE_CONVAR(leanOffsetMin_cm,						2, 0, 10);
+CREATE_CONVAR(leanOffsetRange_cm,					15, 0, 50);
+CREATE_CONVAR(leanRollMin_deg,						3, 0, 10);
+CREATE_CONVAR(leanRollRange_deg,					30, 0, 90);
+CREATE_CONVAR(leanStabilisation_p,					50, 0, 100);
+CREATE_CONVAR(leanSmoothingDuration_s,				0.2, 0.05, 1);
+CREATE_CONVAR(leanEasingAmount_p,					100, 0, 100);
+
+CREATE_CONVAR(handyScale_f,							1, 0, 2);
+CREATE_CONVAR(handyScalePitch_f,					1, 0, 3);
+CREATE_CONVAR(handyScaleRoll_f,						1, 0, 3);
+CREATE_CONVAR(handyScaleYaw_f,						1, 0, 3);
+CREATE_CONVAR(handyScaleOffsets_f,					1, 0, 3);
+CREATE_CONVAR(handyMaxPitch_deg,					0, 0, 90);
+CREATE_CONVAR(handyMaxYaw_deg,						0, 0, 90);
+CREATE_CONVAR(handySmoothingDuration_s,				0.2, 0, 1);
+CREATE_CONVAR(handyConfSmoothingDuration_f,			0.5, 0, 2);
+CREATE_CONVAR(handySmoothingConfidence_p,			100, 0, 300);
+
+CREATE_CONVAR(neutralise_tendency_f,				1, 0, 5);
+CREATE_CONVAR(neutralise_establishAvgDuration_s,	1, 0, 10);
+
+CREATE_CONVAR(fadingDuration_s,						2, 0, 5);
 
 
 void NeutralisedVar::Init(int axis)

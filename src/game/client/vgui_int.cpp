@@ -27,6 +27,8 @@
 #include <vgui/ILocalize.h>
 #include <tier3/tier3.h>
 
+#include "hal/settings_panel.h"
+
 using namespace vgui;
 
 void MP3Player_Create( vgui::VPANEL parent );
@@ -170,6 +172,13 @@ void VGui_CreateGlobalPanels( void )
 #if defined( TRACK_BLOCKING_IO )
 	VPANEL gameDLLPanel = enginevgui->GetPanel( PANEL_GAMEDLL );
 #endif
+	
+	// see: http://developer.valvesoftware.com/wiki/VGUI:_Making_GameUI_Panels
+	VPANEL uiParent = enginevgui->GetPanel( PANEL_GAMEUIDLL );
+	GetHandySettingsPanel()->Create( uiParent );
+	GetLeanSettingsPanel()->Create( uiParent );
+	GetGeneralHeadSettingsPanel()->Create( uiParent );
+
 	// Part of game
 	internalCenterPrint->Create( gameToolParent );
 	loadingdisc->Create( gameToolParent );
@@ -192,6 +201,11 @@ void VGui_CreateGlobalPanels( void )
 void VGui_Shutdown()
 {
 	VGUI_DestroyClientDLLRootPanel();
+
+	// see: http://developer.valvesoftware.com/wiki/VGUI:_Making_GameUI_Panels
+	GetHandySettingsPanel()->Destroy();
+	GetLeanSettingsPanel()->Destroy();
+	GetGeneralHeadSettingsPanel()->Destroy();
 
 #ifndef _X360
 	MP3Player_Destroy();

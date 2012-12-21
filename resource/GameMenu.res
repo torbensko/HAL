@@ -13,6 +13,11 @@
 	}
 	"3"
 	{
+		"label" 		"Show Head Controls"
+		"command"		"engine ShowHeadOptions"
+	}
+	"3"
+	{
 		"label"			"Quit"
 		"command"		"Quit"
 	}
