@@ -175,9 +175,7 @@ void VGui_CreateGlobalPanels( void )
 	
 	// see: http://developer.valvesoftware.com/wiki/VGUI:_Making_GameUI_Panels
 	VPANEL uiParent = enginevgui->GetPanel( PANEL_GAMEUIDLL );
-	GetHandySettingsPanel()->Create( uiParent );
-	GetLeanSettingsPanel()->Create( uiParent );
-	GetGeneralHeadSettingsPanel()->Create( uiParent );
+	GetHTSettingsPanel()->Create( uiParent );
 
 	// Part of game
 	internalCenterPrint->Create( gameToolParent );
@@ -203,9 +201,7 @@ void VGui_Shutdown()
 	VGUI_DestroyClientDLLRootPanel();
 
 	// see: http://developer.valvesoftware.com/wiki/VGUI:_Making_GameUI_Panels
-	GetHandySettingsPanel()->Destroy();
-	GetLeanSettingsPanel()->Destroy();
-	GetGeneralHeadSettingsPanel()->Destroy();
+	GetHTSettingsPanel()->Destroy();
 
 #ifndef _X360
 	MP3Player_Destroy();
