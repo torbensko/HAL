@@ -16,7 +16,7 @@
 #include <vgui_controls/ComboBox.h>
 #include <vgui_controls/Frame.h>
 
-#include "hal/filtered_var.h"
+#include "hal/data_filtering.h"
 #include "cdll_util.h"
 
 
@@ -235,27 +235,28 @@ private:
 	//HTCheckButton *m_showData;
 	
 	HT_OPTION_DEFINE(neutralise_tendency_f);
+
 	HT_OPTION_DEFINE(fadingDuration_s);
+	HT_OPTION_DEFINE(adaptSmoothAmount_p);
 
 	HT_OPTION_DEFINE(handyScale_f);
 	HT_OPTION_DEFINE(handyScalePitch_f);
 	HT_OPTION_DEFINE(handyScaleRoll_f);
 	HT_OPTION_DEFINE(handyScaleYaw_f);
 	HT_OPTION_DEFINE(handyScaleOffsets_f);
-	HT_OPTION_DEFINE(handySmoothingDuration_s);
+	HT_OPTION_DEFINE(adaptSmoothConfSample_sec);
 	HT_OPTION_DEFINE(handyMaxPitch_deg);
 	HT_OPTION_DEFINE(handyMaxYaw_deg);
-	HT_OPTION_DEFINE(handySmoothingConfidence_p);
 
 	HT_OPTION_DEFINE(leanOffsetMin_cm);
 	HT_OPTION_DEFINE(leanOffsetRange_cm);
 	HT_OPTION_DEFINE(leanRollMin_deg);
 	HT_OPTION_DEFINE(leanRollRange_deg);
-	HT_OPTION_DEFINE(leanSmoothingDuration_s);
+	HT_OPTION_DEFINE(leanSmoothing_sec);
 	HT_OPTION_DEFINE(leanScale_f);
-	HT_OPTION_DEFINE(leanEasingAmount_p);
+	HT_OPTION_DEFINE(leanEaseIn_p);
 	HT_OPTION_DEFINE(leanButtonAmount_p);
-	HT_OPTION_DEFINE(leanStabilisation_p);
+	HT_OPTION_DEFINE(leanStabilise_p);
 };
 
 IGameUI* GetHTSettingsPanel();

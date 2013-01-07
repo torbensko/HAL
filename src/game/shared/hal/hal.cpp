@@ -16,32 +16,89 @@ PARTICULAR PURPOSE.
 #include "hal/hal.h"
 #include "hal/util.h"
 
-#define CONF_SMOOTHING_RANGE_MIN		0.48
-#define CONF_SMOOTHING_RANGE			0.22
+#define FILTER_ROLL		0
+#define FILTER_PITCH	1
+#define FILTER_YAW		2
+#define FILTER_VERT		3
+#define FILTER_SIDEW	4
+#define FILTER_LEAN		5
+
 
 HALTechnique* __hal;
 
+HALTechnique::HALTechnique() {
+	__hal = this;
+}
+
+// We initialise it here, to ensure the other parts of the system have been
+// initialised themselves - such as the TunableVars
+
 void HALTechnique::Init()
 {
-	__hal = this;
-
 	m_faceAPI.Init();
 
-	m_neutraliseVars[AXIS_PITCH].Init(AXIS_PITCH);
-	m_neutraliseVars[AXIS_ROLL].Init(AXIS_ROLL);
-	m_neutraliseVars[AXIS_YAW].Init(AXIS_YAW);
-	m_neutraliseVars[AXIS_HORIZONTAL].Init(AXIS_HORIZONTAL);
-	m_neutraliseVars[AXIS_VERTICAL].Init(AXIS_VERTICAL);
+	// Setup the filtering of the head data:
+	m_handySmoothing_auto = new TunableVar("hal_handySmoothing_auto", "-1", 0); // for increasing the smoothing during low confidence periods
+	m_leanSmoothing_auto = new TunableVar("hal_leanSmoothing_auto", "-1", 0);
+	m_smoothedConf = new SmoothFilter(&hal_adaptSmoothConfSample_sec);
+	m_handyScaleAuto = new TunableVar("hal_handyScale_auto", "-1", 0); // for suppressing the handycam while leaning
+
+	// These are used by both the handy-cam and leaning, hence why we create them first
+	WeightedMeanZeroFilter *meanRoll = new WeightedMeanZeroFilter(&hal_leanRollMin_deg);
+	MeanZeroFilter *meanYaw = new MeanZeroFilter();
+	MeanZeroFilter *meanPitch = new MeanZeroFilter();
+	MeanZeroFilter *meanVert = new MeanZeroFilter();
+	MeanZeroFilter *meanSidew = new MeanZeroFilter();
+
+	// change this to alter how each aspect of the head data is filtered
+	m_filteredHeadData[FILTER_ROLL]
+			= new FadeFilter(&hal_fadingDuration_s, 
+				new ScaleFilter(&hal_handyScaleRoll_f, 
+					new ScaleFilter(&hal_handyScale_f,
+						new ScaleFilter(m_handyScaleAuto,
+							new SmoothFilter(m_handySmoothing_auto, meanRoll) ))));
+
+	m_filteredHeadData[FILTER_PITCH]
+			= new FadeFilter(&hal_fadingDuration_s, 
+				new ScaleFilter(&hal_handyScalePitch_f, 
+					new ScaleFilter(&hal_handyScale_f,
+						new ScaleFilter(m_handyScaleAuto,
+							new SmoothFilter(m_handySmoothing_auto, meanPitch) ))));
 	
-	m_handyVars[AXIS_PITCH].Init(AXIS_PITCH);
-	m_handyVars[AXIS_ROLL].Init(AXIS_ROLL);
-	m_handyVars[AXIS_YAW].Init(AXIS_YAW);
-	m_handyVars[AXIS_HORIZONTAL].Init(AXIS_HORIZONTAL);
-	m_handyVars[AXIS_VERTICAL].Init(AXIS_VERTICAL);
+	m_filteredHeadData[FILTER_YAW]
+			= new FadeFilter(&hal_fadingDuration_s, 
+				new ScaleFilter(&hal_handyScaleYaw_f, 
+					new ScaleFilter(&hal_handyScale_f,
+						new ScaleFilter(m_handyScaleAuto,
+							new SmoothFilter(m_handySmoothing_auto, meanYaw) ))));
+	
+	m_filteredHeadData[FILTER_VERT]
+			= new FadeFilter(&hal_fadingDuration_s, 
+				new ScaleFilter(&hal_handyScaleOffsets_f, 
+					new ScaleFilter(&hal_handyScale_f,
+						new ScaleFilter(m_handyScaleAuto,
+							new SmoothFilter(m_handySmoothing_auto, meanVert) ))));
+	
+	m_filteredHeadData[FILTER_SIDEW]
+			= new FadeFilter(&hal_fadingDuration_s, 
+				new ScaleFilter(&hal_handyScaleOffsets_f, 
+					new ScaleFilter(&hal_handyScale_f,
+						new ScaleFilter(m_handyScaleAuto,
+							new SmoothFilter(m_handySmoothing_auto, meanSidew) ))));
+	
+	Filter *lean = new Filter();
+	lean->AddParent(
+			new NormaliseFilter(&hal_leanRollMin_deg, &hal_leanRollRange_deg, 
+				new SmoothFilter(m_leanSmoothing_auto, meanRoll) ));
+	lean->AddParent(
+			new NormaliseFilter(&hal_leanOffsetMin_cm, &hal_leanOffsetRange_cm,
+				new SmoothFilter(m_leanSmoothing_auto, meanRoll) ));
 
-	m_adaptiveConfidence.EnableSmoothing(&hal_handyConfSmoothingDuration_f);
-
-	m_leaningVarAmount.Init();
+	m_filteredHeadData[FILTER_LEAN]
+			= new FadeFilter(&hal_fadingDuration_s,
+				new EaseInFilter(&hal_leanEaseIn_p, 
+					new ClampFilter(-1, 1, 
+						new ScaleFilter(&hal_leanScale_f, lean) )));
 }
 
 void HALTechnique::Shutdown()
@@ -51,89 +108,58 @@ void HALTechnique::Shutdown()
 
 void HALTechnique::Update()
 {
-	static float p_now = 0;
-	float now = getCurrentTime();
+	if(!m_faceAPI.IsReady())
+		return;
 
 	FaceAPIData	data = m_faceAPI.GetHeadData();
 
-	// determine the user's neutral position and subtract this from the current position
-	// to make the neutral position a zero value
-
 	if(data.h_confidence > 0.0f)
 	{
-		m_neutralised[AXIS_ROLL]		= m_neutraliseVars[AXIS_ROLL].Update(		RAD_TO_DEG(data.h_roll), data.h_frameNum, data.h_frameDuration);
-		m_neutralised[AXIS_PITCH]		= m_neutraliseVars[AXIS_PITCH].Update(		RAD_TO_DEG(data.h_pitch), data.h_frameNum, data.h_frameDuration);
-		m_neutralised[AXIS_YAW]			= m_neutraliseVars[AXIS_YAW].Update(		RAD_TO_DEG(data.h_yaw), data.h_frameNum, data.h_frameDuration);
-		m_neutralised[AXIS_HORIZONTAL]	= m_neutraliseVars[AXIS_HORIZONTAL].Update(	METERS_TO_CMS(data.h_width), data.h_frameNum, data.h_frameDuration);
-		m_neutralised[AXIS_VERTICAL]	= m_neutraliseVars[AXIS_VERTICAL].Update(	METERS_TO_CMS(data.h_height), data.h_frameNum, data.h_frameDuration);
-		
-		m_headLeanAmount = m_leaningVarAmount.UpdateWithData(
-			now, m_neutralised[AXIS_ROLL], m_neutralised[AXIS_HORIZONTAL]);
+		// Update our adaptive smoothing value
+		float adapt = 1 - (data.h_confidence - hal_adaptSmoothMinConf_f.GetFloat()) / 
+				(hal_adaptSmoothMaxConf_f.GetFloat() - hal_adaptSmoothMinConf_f.GetFloat());
+		adapt = 1 + clamp(adapt, 0, 1) * hal_adaptSmoothAmount_p.GetFloat() / 100.0f;
+		adapt = m_smoothedConf->Update(adapt);
+
+		m_handySmoothing_auto->SetValue(hal_handySmoothing_sec.GetFloat() * adapt);
+		m_handySmoothing_auto->SetValue(hal_leanSmoothing_sec.GetFloat() * adapt);
+
+		// We suppress the yaw and pitch when rolling to ensure they don't interfere with the leaning technique
+		m_handyScaleAuto->SetValue(
+				1 - min(1, hal_leanStabilise_p.GetFloat()/100.0f * fabs(m_filteredHeadData[FILTER_LEAN]->GetValue())) );
+		//DevMsg("%.2f %.2f\n", m_filteredHeadData[FILTER_LEAN]->GetValue(), m_handyScaleAuto->GetFloat());
+
+		m_filteredHeadData[FILTER_ROLL]->Update(RAD_TO_DEG(data.h_roll), data.h_frameNum);
+		//m_filteredHeadData[FILTER_PITCH]->Update(RAD_TO_DEG(data.h_pitch), data.h_frameNum);
+		//m_filteredHeadData[FILTER_YAW]->Update(RAD_TO_DEG(data.h_yaw), data.h_frameNum);
+		//m_filteredHeadData[FILTER_VERT]->Update(METERS_TO_CMS(data.h_height), data.h_frameNum);
+		//m_filteredHeadData[FILTER_SIDEW]->Update(METERS_TO_CMS(data.h_width), data.h_frameNum);
+		//// it doens't matter what number we pass as long as we've already called the roll and pitch filters
+		//m_filteredHeadData[FILTER_LEAN]->Update(0, data.h_frameNum);
 	}
 	else
 	{
-		m_headLeanAmount = m_leaningVarAmount.UpdateWithoutData(now);
+		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
+		{
+			m_filteredHeadData[i]->Update();
+		}
 	}
-
-	// work out the leaning amount:
-	m_headLeanAmount = clamp(m_headLeanAmount, -1, 1);
-
-	// we suppress the yaw and pitch when rolling to ensure they don't interfear with the leaning technique
-	float suppress = 1;
-	if(hal_leanStabilisation_p.GetFloat() > 0)
-		suppress = 1 - min(1, hal_leanStabilisation_p.GetFloat()/100.0f * fabs(m_headLeanAmount));
-
-	static float adaptive_p = 1;
-	float averageConfidence = data.h_confidence;
-	m_adaptiveConfidence.Smooth(averageConfidence, now);
-
-	// we suppress the handycam based on the confidence
-	float c = 1 - (averageConfidence - CONF_SMOOTHING_RANGE_MIN)/CONF_SMOOTHING_RANGE;
-	c = max(0, c);
-	float adaptMagnitude = hal_handySmoothingConfidence_p.GetFloat() / 100.0f;
-	float adaptive = 1 + c * adaptMagnitude;
-
-	// we don't just immediately remove the adapting, we ease it out over a second
-	float timeDiff = now - p_now;
-	if(adaptive < adaptive_p)
-		adaptive = max(1, adaptive_p - timeDiff);
-
-	adaptive_p = adaptive;
-
-	if(data.h_confidence > 0.0f)
-	{
-		m_handycam[AXIS_PITCH]		= m_handyVars[AXIS_PITCH].UpdateWithData(now,		m_neutralised[AXIS_PITCH]*suppress, adaptive);
-		m_handycam[AXIS_YAW]		= m_handyVars[AXIS_YAW].UpdateWithData(now,			m_neutralised[AXIS_YAW]*suppress, adaptive);
-		m_handycam[AXIS_ROLL]		= m_handyVars[AXIS_ROLL].UpdateWithData(now,		m_neutralised[AXIS_ROLL]);
-		m_handycam[AXIS_HORIZONTAL]	= m_handyVars[AXIS_HORIZONTAL].UpdateWithData(now,	m_neutralised[AXIS_HORIZONTAL]);
-		m_handycam[AXIS_VERTICAL]	= m_handyVars[AXIS_VERTICAL].UpdateWithData(now,	m_neutralised[AXIS_VERTICAL]);
-	}
-	else
-	{
-		m_handycam[AXIS_PITCH]		= m_handyVars[AXIS_PITCH].UpdateWithoutData(now);
-		m_handycam[AXIS_YAW]		= m_handyVars[AXIS_YAW].UpdateWithoutData(now);
-		m_handycam[AXIS_ROLL]		= m_handyVars[AXIS_ROLL].UpdateWithoutData(now);
-		m_handycam[AXIS_HORIZONTAL]	= m_handyVars[AXIS_HORIZONTAL].UpdateWithoutData(now);
-		m_handycam[AXIS_VERTICAL]	= m_handyVars[AXIS_VERTICAL].UpdateWithoutData(now);
-	}
-
-	p_now = now;
 }
 
 CameraOffsets HALTechnique::GetCameraShake()
 {
 	CameraOffsets offset;
-	offset.pitch	= m_handycam[AXIS_PITCH];
-	offset.roll		= m_handycam[AXIS_ROLL];
-	offset.yaw		= m_handycam[AXIS_YAW];
-	offset.horOff	= m_handycam[AXIS_HORIZONTAL];
-	offset.vertOff	= m_handycam[AXIS_VERTICAL];
+	//offset.pitch	= m_filteredHeadData[FILTER_PITCH]->GetValue();
+	offset.roll		= m_filteredHeadData[FILTER_ROLL]->GetValue();
+	//offset.yaw		= m_filteredHeadData[FILTER_YAW]->GetValue();
+	//offset.vertOff	= m_filteredHeadData[FILTER_VERT]->GetValue();
+	//offset.horOff	= m_filteredHeadData[FILTER_SIDEW]->GetValue();
 	return offset;
 }
 
 float HALTechnique::GetLeanAmount()
 {
-	return m_headLeanAmount;
+	return 0; //m_filteredHeadData[FILTER_LEAN]->GetValue();
 }
 
 float UTIL_GetLeanAmount()
@@ -142,9 +168,6 @@ float UTIL_GetLeanAmount()
 }
 
 CameraOffsets UTIL_GetHandycamShake()
-{	
-	CameraOffsets offset;
-	if(__hal)
-		offset = __hal->GetCameraShake();
-	return offset;
+{
+	return (__hal) ? __hal->GetCameraShake() : CameraOffsets();
 }

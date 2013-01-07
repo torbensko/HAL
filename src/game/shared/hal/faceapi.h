@@ -54,6 +54,8 @@ public:
 
 	FaceAPIData		GetHeadData();		// not a halting function
 	float			GetTrackingConf();
+
+	bool			IsReady() { return m_isReady; }
 	
 #	ifdef USE_FACEAPI_4
 	bool			InternalDataFetch();
@@ -76,6 +78,7 @@ protected:
 	int				m_versionMaintenance;
 
 	int				m_frame;
+	bool			m_isReady;
 };
 
 FaceAPI* GetFaceAPI();

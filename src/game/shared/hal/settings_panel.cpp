@@ -1,7 +1,6 @@
 #include "cbase.h"
 
 #include "hal/settings_panel.h"
-#include "hal/hal_vars.h"
 
 #include <vgui/ILocalize.h>
 
@@ -211,26 +210,28 @@ CHTSettingsPanel::CHTSettingsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "He
  	//vgui::HScheme scheme = vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme");
  	//SetScheme( scheme );
 
+	// general-setting:
+	HT_OPTION_CREATE(adaptSmoothAmount_p);
+
 	// handy-cam options	
 	HT_OPTION_CREATE(handyScale_f);
 	HT_OPTION_CREATE(handyScalePitch_f);
 	HT_OPTION_CREATE(handyScaleRoll_f);
 	HT_OPTION_CREATE(handyScaleYaw_f);
 	HT_OPTION_CREATE(handyScaleOffsets_f);
-	HT_OPTION_CREATE(handySmoothingDuration_s);
+	HT_OPTION_CREATE(adaptSmoothConfSample_sec);
 	HT_OPTION_CREATE(handyMaxPitch_deg);
 	HT_OPTION_CREATE(handyMaxYaw_deg);
-	HT_OPTION_CREATE(handySmoothingConfidence_p);
 
 	// leaning options
 	HT_OPTION_CREATE(leanOffsetMin_cm);
 	HT_OPTION_CREATE(leanOffsetRange_cm);
 	HT_OPTION_CREATE(leanRollMin_deg);
 	HT_OPTION_CREATE(leanRollRange_deg);
-	HT_OPTION_CREATE(leanSmoothingDuration_s);
+	HT_OPTION_CREATE(leanSmoothing_sec);
 	HT_OPTION_CREATE(leanScale_f);
-	HT_OPTION_CREATE(leanEasingAmount_p);
-	HT_OPTION_CREATE(leanStabilisation_p);
+	HT_OPTION_CREATE(leanEaseIn_p);
+	HT_OPTION_CREATE(leanStabilise_p);
 	//HT_OPTION_CREATE(leanButtonAmount_p);
 
 
@@ -249,13 +250,11 @@ CHTSettingsPanel::CHTSettingsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "He
 	//m_resetNeutral = vgui::SETUP_PANEL(new vgui::Button(this, "ResetNeutral", ""));
 	m_close = vgui::SETUP_PANEL(new vgui::Button(this, "Close", ""));
 	
-	HT_OPTION_CREATE(neutralise_tendency_f);
-
 	// sets their position
  	LoadControlSettings("Resource/UI/HeadSettings.res");
 
-	// general options
-	HT_OPTION_SETUP(neutralise_tendency_f);
+	// general-setting:
+	HT_OPTION_SETUP(adaptSmoothAmount_p);
 
 	// handy-cam options
 	HT_OPTION_SETUP(handyScale_f);
@@ -263,21 +262,20 @@ CHTSettingsPanel::CHTSettingsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "He
 	HT_OPTION_SETUP(handyScaleRoll_f);
 	HT_OPTION_SETUP(handyScaleYaw_f);
 	HT_OPTION_SETUP(handyScaleOffsets_f);
-	HT_OPTION_SETUP(handySmoothingDuration_s);
+	HT_OPTION_SETUP(adaptSmoothConfSample_sec);
 	HT_OPTION_SETUP(handyMaxPitch_deg);
 	HT_OPTION_SETUP(handyMaxYaw_deg);
-	HT_OPTION_SETUP(handySmoothingConfidence_p);
 
 	// leaning options
 	HT_OPTION_SETUP(leanOffsetMin_cm);
 	HT_OPTION_SETUP(leanOffsetRange_cm);
 	HT_OPTION_SETUP(leanRollMin_deg);
 	HT_OPTION_SETUP(leanRollRange_deg);
-	HT_OPTION_SETUP(leanSmoothingDuration_s);
+	HT_OPTION_SETUP(leanSmoothing_sec);
 	HT_OPTION_SETUP(leanScale_f);
-	HT_OPTION_SETUP(leanEasingAmount_p);
+	HT_OPTION_SETUP(leanEaseIn_p);
 	//HT_OPTION_SETUP(leanButtonAmount_p);
-	HT_OPTION_SETUP(leanStabilisation_p);
+	HT_OPTION_SETUP(leanStabilise_p);
 
 	// Buttons:
 	//m_resetNeutral->SetCommand("ResetNeutral");
@@ -293,7 +291,6 @@ void CHTSettingsPanel::OnCommand(const char* command)
 {
 	if(!stricmp(command, "RestoreDefaults")) 
 	{
-		HT_OPTION_REVERT(neutralise_tendency_f);
 		//HT_OPTION_REVERT(dropoutOpt);
 		//HT_OPTION_REVERT(resetOpt);
 		//fo_showData.Revert();
@@ -302,21 +299,21 @@ void CHTSettingsPanel::OnCommand(const char* command)
 		HT_OPTION_REVERT(leanOffsetRange_cm);
 		HT_OPTION_REVERT(leanRollMin_deg);
 		HT_OPTION_REVERT(leanRollRange_deg);
-		HT_OPTION_REVERT(leanSmoothingDuration_s);
+		HT_OPTION_REVERT(leanSmoothing_sec);
 		HT_OPTION_REVERT(leanScale_f);
-		HT_OPTION_REVERT(leanEasingAmount_p);
+		HT_OPTION_REVERT(leanEaseIn_p);
 		//HT_OPTION_REVERT(leanButtonAmount_p);
-		HT_OPTION_REVERT(leanStabilisation_p);
+		HT_OPTION_REVERT(leanStabilise_p);
 		
 		HT_OPTION_REVERT(handyScale_f);
 		HT_OPTION_REVERT(handyScalePitch_f);
 		HT_OPTION_REVERT(handyScaleRoll_f);
 		HT_OPTION_REVERT(handyScaleYaw_f);
 		HT_OPTION_REVERT(handyScaleOffsets_f);
-		HT_OPTION_REVERT(handySmoothingDuration_s);
+		HT_OPTION_REVERT(adaptSmoothConfSample_sec);
 		HT_OPTION_REVERT(handyMaxPitch_deg);
 		HT_OPTION_REVERT(handyMaxYaw_deg);
-		HT_OPTION_REVERT(handySmoothingConfidence_p);
+		HT_OPTION_REVERT(adaptSmoothAmount_p);
 	}
 	else if(!stricmp(command, "ResetNeutral"))
 	{

@@ -144,6 +144,7 @@ FaceAPI::FaceAPI()
 	_faceapi = this;
 	m_lastUpdate = 0.0f;
 	m_frame = 1;
+	m_isReady = false;
 }
 
 // The main function: setup a tracking engine and show a video window, then loop on the keyboard.
@@ -219,10 +220,14 @@ void FaceAPI::Init()
 	m_nextData = 1;
 	(HANDLE)_beginthread(FaceAPI_dataFetcher, 0, (void *) 0);
 #	endif
+
+	m_isReady = true;
 }
 
 void FaceAPI::Shutdown() 
 {
+	m_isReady = false;
+
 #	ifdef USE_FACEAPI_4
 	// wait for the fetcher thread to die
 	m_shuttingDown = true;

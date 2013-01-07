@@ -2817,6 +2817,14 @@
 				Name="HAL"
 				>
 				<File
+					RelativePath="..\shared\hal\data_filtering.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\shared\hal\data_filtering.h"
+					>
+				</File>
+				<File
 					RelativePath="..\shared\hal\engine_dependencies.h"
 					>
 				</File>
@@ -2833,14 +2841,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\shared\hal\filtered_var.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\shared\hal\filtered_var.h"
-					>
-				</File>
-				<File
 					RelativePath="..\shared\hal\hal.cpp"
 					>
 				</File>
@@ -2850,14 +2850,6 @@
 				</File>
 				<File
 					RelativePath="..\shared\hal\hal_Source.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\shared\hal\hal_vars.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\shared\hal\hal_vars.h"
 					>
 				</File>
 				<File
