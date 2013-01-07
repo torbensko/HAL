@@ -52,27 +52,20 @@ public:
 	Filter(Filter *parent = NULL) { 
 		if(parent)
 			AddParent(parent);
-		m_pFrame = -1;
 		m_pValue = 0.0f;
 	}
 
-	float Update(float value, int frame = -1) {
+	float Update(float value) {
 		float m_value = value;
 
 		// We add the results of the parents together
 		if(m_parents.size() > 0) {
 			m_value = 0;
 			for(std::vector<Filter*>::iterator it = m_parents.begin(); it != m_parents.end(); ++it) {
-				m_value += (*it)->Update(value, frame);
+				m_value += (*it)->Update(value);
 			}
 		}
-		if(true) //m_pFrame != frame || frame == -1)
-		{
-			m_pValue = UpdateWorker(m_value);
-			DevMsg("%d: %.2f\n", frame, m_pValue);
-		}
-
-		m_pFrame = frame;
+		m_pValue = UpdateWorker(m_value);
 		return m_pValue;
 	}
 	virtual float Update() { return m_pValue; }
@@ -95,7 +88,6 @@ protected:
 
 private:
 	std::vector<Filter*> m_parents;
-	int m_pFrame;
 	float m_pValue;
 };
 

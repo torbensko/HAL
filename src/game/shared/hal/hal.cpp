@@ -129,13 +129,13 @@ void HALTechnique::Update()
 				1 - min(1, hal_leanStabilise_p.GetFloat()/100.0f * fabs(m_filteredHeadData[FILTER_LEAN]->GetValue())) );
 		//DevMsg("%.2f %.2f\n", m_filteredHeadData[FILTER_LEAN]->GetValue(), m_handyScaleAuto->GetFloat());
 
-		m_filteredHeadData[FILTER_ROLL]->Update(RAD_TO_DEG(data.h_roll), data.h_frameNum);
-		//m_filteredHeadData[FILTER_PITCH]->Update(RAD_TO_DEG(data.h_pitch), data.h_frameNum);
-		//m_filteredHeadData[FILTER_YAW]->Update(RAD_TO_DEG(data.h_yaw), data.h_frameNum);
-		//m_filteredHeadData[FILTER_VERT]->Update(METERS_TO_CMS(data.h_height), data.h_frameNum);
-		//m_filteredHeadData[FILTER_SIDEW]->Update(METERS_TO_CMS(data.h_width), data.h_frameNum);
+		m_filteredHeadData[FILTER_ROLL]->Update(RAD_TO_DEG(data.h_roll));
+		//m_filteredHeadData[FILTER_PITCH]->Update(RAD_TO_DEG(data.h_pitch));
+		//m_filteredHeadData[FILTER_YAW]->Update(RAD_TO_DEG(data.h_yaw));
+		//m_filteredHeadData[FILTER_VERT]->Update(METERS_TO_CMS(data.h_height));
+		//m_filteredHeadData[FILTER_SIDEW]->Update(METERS_TO_CMS(data.h_width));
 		//// it doens't matter what number we pass as long as we've already called the roll and pitch filters
-		//m_filteredHeadData[FILTER_LEAN]->Update(0, data.h_frameNum);
+		//m_filteredHeadData[FILTER_LEAN]->Update(0);
 	}
 	else
 	{
