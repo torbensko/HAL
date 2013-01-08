@@ -2,19 +2,29 @@
 {
 	"1"
 	{
-		"label" 		"Resume"
+		"label" 		"Resume Game"
 		"command"		"ResumeGame"
 		"OnlyInGame"	"1"
 	}
 	"2"
 	{
-		"label" 		"Load Test Map"
+		"label" 		"Quickplay"
 		"command"		"engine map test_map"
+	}
+	"2"
+	{
+		"label" 		"Load a Level"
+		"command"		"engine ShowMapPanel"
 	}
 	"3"
 	{
-		"label" 		"Show Head Controls"
+		"label" 		"Head Tracking Options"
 		"command"		"engine ShowHeadOptions"
+	}
+	"4"
+	{
+		"label"			"General Options"
+		"command"		"OpenOptionsDialog"
 	}
 	"3"
 	{

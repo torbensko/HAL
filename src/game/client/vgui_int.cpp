@@ -176,6 +176,7 @@ void VGui_CreateGlobalPanels( void )
 	// see: http://developer.valvesoftware.com/wiki/VGUI:_Making_GameUI_Panels
 	VPANEL uiParent = enginevgui->GetPanel( PANEL_GAMEUIDLL );
 	GetHTSettingsPanel()->Create( uiParent );
+	GetHL2MapPanel()->Create( uiParent );
 
 	// Part of game
 	internalCenterPrint->Create( gameToolParent );
@@ -202,6 +203,7 @@ void VGui_Shutdown()
 
 	// see: http://developer.valvesoftware.com/wiki/VGUI:_Making_GameUI_Panels
 	GetHTSettingsPanel()->Destroy();
+	GetHL2MapPanel()->Destroy();
 
 #ifndef _X360
 	MP3Player_Destroy();

@@ -1,30 +1,30 @@
 #include "cbase.h"
 
+#include <vgui/ILocalize.h>
+#include "filesystem.h"
+
 #include "hal/settings_panel.h"
 #include "hal/hal.h"
-
-#include <vgui/ILocalize.h>
 
 // memdbgon must be the last include file in a .cpp file!!! 
 #include "tier0/memdbgon.h"
 
 
 
-#define PANELS_FLUSH_BUFFER	5
-
 
 GameUI<CHTSettingsPanel> g_htSettingsPanel;
+GameUI<CHL2MapPanel> g_HL2MapPanel;
 
-CON_COMMAND(ShowHeadOptions, NULL)
-{
-	GetHTSettingsPanel()->GetPanel()->SetVisible(true);
-}
+IGameUI* GetHTSettingsPanel() { return &g_htSettingsPanel; }
+IGameUI* GetHL2MapPanel() { return &g_HL2MapPanel; }
+
+CON_COMMAND(ShowHeadOptions, NULL)	{ g_htSettingsPanel.GetPanel()->SetVisible(true); }
+CON_COMMAND(ShowMapPanel,NULL)		{ g_HL2MapPanel.GetPanel()->SetVisible(true); }
 
 CON_COMMAND(ResetHeadPosition, NULL)
 {
 	UTIL_ResetHeadPosition();
 }
-
 
 
 
@@ -331,4 +331,81 @@ void CHTSettingsPanel::SetVisible(bool state)
 	
 }
 
-IGameUI* GetHTSettingsPanel() { return &g_htSettingsPanel; }
+
+
+
+
+
+CHL2MapPanel::CHL2MapPanel( vgui::VPANEL parent ) : BaseClass( NULL, "MapPanel" )
+{
+ 	SetParent(parent);
+
+	m_maps		= vgui::SETUP_PANEL(new vgui::ComboBox(this, "MapList", 10, false));
+	m_loadMap	= vgui::SETUP_PANEL(new vgui::Button(this, "LoadMap", ""));
+	m_cancel	= vgui::SETUP_PANEL(new vgui::Button(this, "Cancel", ""));
+	m_intro		= vgui::SETUP_PANEL(new vgui::Label(this, "Intro", ""));
+	
+ 	LoadControlSettings("Resource/UI/MapPicker.res");
+
+	m_loadMap->SetCommand("loadmap");
+	m_cancel->SetCommand("close");
+
+	FileFindHandle_t maps;
+	char buf[128];
+
+	const char *mapname = filesystem->FindFirst("maps/*.bsp", &maps);
+	while(mapname != NULL) {
+		engine_sprintf(buf, 128, "%s", mapname);
+		char *end = strstr(buf, ".bsp");
+		if(end) *end = '\0';
+		if(strncmp(buf, "background", 10))
+			if(strncmp(buf, "fo_", 3))
+				m_maps->AddItem(buf, NULL);
+		mapname = filesystem->FindNext(maps);
+	}
+	if(maps != NULL)
+		FindClose((HANDLE) maps);
+	
+	if(m_maps->GetItemCount() == 0) 
+	{
+		engine_sprintf(buf, 128, "No compatible maps found");
+		m_maps->AddItem(buf, NULL);
+	}
+	// we know that we have at least item in the combo
+	m_maps->ActivateItem(0);
+
+ 	CenterThisPanelOnScreen();
+ 	SetVisible(false);
+	SetSizeable(false);
+}
+
+void CHL2MapPanel::OnCommand(const char* command) 
+{
+	//DevMsg(command);
+	if(!stricmp(command, "loadmap")) 
+	{
+		char buf[64];
+		m_maps->GetItemText(m_maps->GetActiveItem(), buf, 64);
+		if(strlen(buf) > 0) 
+		{
+			char cmd[68];
+			engine_sprintf(cmd, 68, "map %s", buf);
+			engine->ClientCmd(cmd);
+		}
+	}
+	else
+	{
+		BaseClass::OnCommand(command);
+	}
+}
+
+void CHL2MapPanel::SetVisible(bool state)
+{
+	BaseClass::SetVisible(state);
+
+	if(state)
+		MoveToFront();
+}
+
+
+

@@ -260,6 +260,26 @@ private:
 	HT_OPTION_DEFINE(leanStabilise_p);
 };
 
+
+class CHL2MapPanel : public vgui::Frame
+{
+ 	DECLARE_CLASS_SIMPLE(CHL2MapPanel, vgui::Frame);
+ public:
+ 	CHL2MapPanel( vgui::VPANEL parent );
+	
+	void SetVisible(bool state);
+	void OnCommand(const char* command);
+private:
+	vgui::ComboBox		*m_maps;
+	vgui::Button		*m_loadMap;
+	vgui::Button		*m_cancel;
+
+	vgui::Label			*m_intro;
+};
+
+
 IGameUI* GetHTSettingsPanel();
+IGameUI* GetHL2MapPanel();
+
 
 #endif HT_SETTINGS_H
