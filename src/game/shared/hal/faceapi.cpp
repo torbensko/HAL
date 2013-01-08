@@ -20,6 +20,7 @@ sample programs (file: TestAppConsole.cpp).
 #include <iostream>
 
 #include "hal/faceapi.h"
+#include "hal/util.h"
 #include "hal/engine_dependencies.h"
 
 using namespace std;
@@ -35,14 +36,14 @@ using namespace std;
 
 FaceAPIData::FaceAPIData()
 {
-	h_pitch = 0.0f;
-	h_yaw = 0.0f;
-	h_roll = 0.0f;
-	h_depth = 0.0f;
-	h_width = 0.0f;
-	h_height = 0.0f;
+	h_headPos[FACEAPI_ROLL] = 0.0f;
+	h_headPos[FACEAPI_PITCH] = 0.0f;
+	h_headPos[FACEAPI_YAW] = 0.0f;
+	h_headPos[FACEAPI_VERT] = 0.0f;
+	h_headPos[FACEAPI_SIDEW] = 0.0f;
+	h_headPos[FACEAPI_DEPTH] = 0.0f;
+
 	h_confidence = 0.0f;
-	h_frameDuration = 0.0f;
 	h_frameNum = 0;
 }
 
@@ -66,7 +67,7 @@ bool FaceAPI::InternalDataFetch()
 	if(!engine_handle || m_shuttingDown)
 		return false;
 
-	float now = getCurrentTime();
+	float now = ENGINE_NOW;
 
 	smEngineData enginedata;
 	smReturnCode result = smEngineDataWaitNext(engine_handle, &enginedata, 5000);
@@ -108,23 +109,18 @@ void FaceAPI::SetData(smEngineHeadPoseData head_pose)
 	if(!engine_handle || m_shuttingDown)
 		return;
 
-	float now = getCurrentTime();
+	m_data[m_nextData].h_headPos[FACEAPI_VERT]		= METERS_TO_SOURCE(head_pose.head_pos.y);
+	m_data[m_nextData].h_headPos[FACEAPI_SIDEW]		= METERS_TO_SOURCE(head_pose.head_pos.x);
+	m_data[m_nextData].h_headPos[FACEAPI_DEPTH]		= METERS_TO_SOURCE(head_pose.head_pos.z);
+	m_data[m_nextData].h_headPos[FACEAPI_YAW]		= RAD_TO_DEG(head_pose.head_rot.y_rads);
+	m_data[m_nextData].h_headPos[FACEAPI_PITCH]		= RAD_TO_DEG(head_pose.head_rot.x_rads);
+	m_data[m_nextData].h_headPos[FACEAPI_ROLL]		= RAD_TO_DEG(head_pose.head_rot.z_rads);
 
-	m_data[m_nextData].h_height			= head_pose.head_pos.y;
-	m_data[m_nextData].h_width			= head_pose.head_pos.x;
-	m_data[m_nextData].h_depth			= head_pose.head_pos.z;
-	m_data[m_nextData].h_yaw			= head_pose.head_rot.y_rads;
-	m_data[m_nextData].h_pitch			= head_pose.head_rot.x_rads;
-	m_data[m_nextData].h_roll			= head_pose.head_rot.z_rads;
 	m_data[m_nextData].h_confidence		= head_pose.confidence;
-
 	m_data[m_nextData].h_frameNum		= m_frame++;
-	m_data[m_nextData].h_frameDuration	= now - m_lastUpdate;
 
 	m_currData = m_nextData;
 	m_nextData = (m_nextData + 1) % 3;
-	
-	m_lastUpdate = now;
 }
 #endif
 
@@ -142,7 +138,6 @@ FaceAPI::FaceAPI()
 {
 	// too early to initialise the actual tracking
 	_faceapi = this;
-	m_lastUpdate = 0.0f;
 	m_frame = 1;
 	m_isReady = false;
 }

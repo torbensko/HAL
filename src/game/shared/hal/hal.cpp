@@ -44,61 +44,65 @@ void HALTechnique::Init()
 	m_handyScaleAuto = new TunableVar("hal_handyScale_auto", "-1", 0); // for suppressing the handycam while leaning
 
 	// These are used by both the handy-cam and leaning, hence why we create them first
-	WeightedMeanZeroFilter *meanRoll = new WeightedMeanZeroFilter(&hal_leanRollMin_deg);
-	MeanZeroFilter *meanYaw = new MeanZeroFilter();
-	MeanZeroFilter *meanPitch = new MeanZeroFilter();
-	MeanZeroFilter *meanVert = new MeanZeroFilter();
-	MeanZeroFilter *meanSidew = new MeanZeroFilter();
+	WeightedMeanOffsetFilter *meanRoll = new WeightedMeanOffsetFilter(FACEAPI_ROLL, &hal_leanRollMin_deg);
+	MeanOffsetFilter *meanYaw = new MeanOffsetFilter(FACEAPI_YAW);
+	MeanOffsetFilter *meanPitch = new MeanOffsetFilter(FACEAPI_PITCH);
+	MeanOffsetFilter *meanVert = new MeanOffsetFilter(FACEAPI_VERT);
+	MeanOffsetFilter *meanSidew = new MeanOffsetFilter(FACEAPI_SIDEW);
 
 	// change this to alter how each aspect of the head data is filtered
-	m_filteredHeadData[FILTER_ROLL]
-			= new FadeFilter(&hal_fadingDuration_s, 
+	m_filteredHeadData[FILTER_ROLL] =
+			new FadeFilter(&hal_fadingDuration_s, 
 				new ScaleFilter(&hal_handyScaleRoll_f, 
 					new ScaleFilter(&hal_handyScale_f,
 						new ScaleFilter(m_handyScaleAuto,
 							new SmoothFilter(m_handySmoothing_auto, meanRoll) ))));
 
-	m_filteredHeadData[FILTER_PITCH]
-			= new FadeFilter(&hal_fadingDuration_s, 
+	m_filteredHeadData[FILTER_PITCH] =
+			new FadeFilter(&hal_fadingDuration_s, 
 				new ScaleFilter(&hal_handyScalePitch_f, 
 					new ScaleFilter(&hal_handyScale_f,
 						new ScaleFilter(m_handyScaleAuto,
 							new SmoothFilter(m_handySmoothing_auto, meanPitch) ))));
 	
-	m_filteredHeadData[FILTER_YAW]
-			= new FadeFilter(&hal_fadingDuration_s, 
+	m_filteredHeadData[FILTER_YAW] =
+			new FadeFilter(&hal_fadingDuration_s, 
 				new ScaleFilter(&hal_handyScaleYaw_f, 
 					new ScaleFilter(&hal_handyScale_f,
 						new ScaleFilter(m_handyScaleAuto,
 							new SmoothFilter(m_handySmoothing_auto, meanYaw) ))));
 	
-	m_filteredHeadData[FILTER_VERT]
-			= new FadeFilter(&hal_fadingDuration_s, 
+	m_filteredHeadData[FILTER_VERT] =
+			new FadeFilter(&hal_fadingDuration_s, 
 				new ScaleFilter(&hal_handyScaleOffsets_f, 
 					new ScaleFilter(&hal_handyScale_f,
 						new ScaleFilter(m_handyScaleAuto,
 							new SmoothFilter(m_handySmoothing_auto, meanVert) ))));
 	
-	m_filteredHeadData[FILTER_SIDEW]
-			= new FadeFilter(&hal_fadingDuration_s, 
+	m_filteredHeadData[FILTER_SIDEW] = 
+			new FadeFilter(&hal_fadingDuration_s, 
 				new ScaleFilter(&hal_handyScaleOffsets_f, 
 					new ScaleFilter(&hal_handyScale_f,
 						new ScaleFilter(m_handyScaleAuto,
 							new SmoothFilter(m_handySmoothing_auto, meanSidew) ))));
-	
-	Filter *lean = new Filter();
-	lean->AddParent(
-			new NormaliseFilter(&hal_leanRollMin_deg, &hal_leanRollRange_deg, 
-				new SmoothFilter(m_leanSmoothing_auto, meanRoll) ));
-	lean->AddParent(
-			new NormaliseFilter(&hal_leanOffsetMin_cm, &hal_leanOffsetRange_cm,
-				new SmoothFilter(m_leanSmoothing_auto, meanRoll) ));
 
-	m_filteredHeadData[FILTER_LEAN]
-			= new FadeFilter(&hal_fadingDuration_s,
+	m_filteredHeadData[FILTER_LEAN] =
+			new FadeFilter(&hal_fadingDuration_s,
 				new EaseInFilter(&hal_leanEaseIn_p, 
 					new ClampFilter(-1, 1, 
-						new ScaleFilter(&hal_leanScale_f, lean) )));
+						new ScaleFilter(&hal_leanScale_f, 
+							new SumFilter(
+								new NormaliseFilter(&hal_leanRollMin_deg, &hal_leanRollRange_deg, 
+									new SmoothFilter(m_leanSmoothing_auto, meanRoll)
+								),
+								new NormaliseFilter(&hal_leanOffsetMin_cm, &hal_leanOffsetRange_cm,
+									new SmoothFilter(m_leanSmoothing_auto, meanSidew)
+								)
+							)
+						)
+					)
+				)
+			);
 }
 
 void HALTechnique::Shutdown()
@@ -122,44 +126,40 @@ void HALTechnique::Update()
 		adapt = m_smoothedConf->Update(adapt);
 
 		m_handySmoothing_auto->SetValue(hal_handySmoothing_sec.GetFloat() * adapt);
-		m_handySmoothing_auto->SetValue(hal_leanSmoothing_sec.GetFloat() * adapt);
+		m_leanSmoothing_auto->SetValue(hal_leanSmoothing_sec.GetFloat() * adapt);
 
 		// We suppress the yaw and pitch when rolling to ensure they don't interfere with the leaning technique
 		m_handyScaleAuto->SetValue(
 				1 - min(1, hal_leanStabilise_p.GetFloat()/100.0f * fabs(m_filteredHeadData[FILTER_LEAN]->GetValue())) );
-		//DevMsg("%.2f %.2f\n", m_filteredHeadData[FILTER_LEAN]->GetValue(), m_handyScaleAuto->GetFloat());
+		
+		DevMsg("adapt: %6.2f, handy: %6.2f\n", adapt, m_handyScaleAuto->GetFloat());
 
-		m_filteredHeadData[FILTER_ROLL]->Update(RAD_TO_DEG(data.h_roll));
-		//m_filteredHeadData[FILTER_PITCH]->Update(RAD_TO_DEG(data.h_pitch));
-		//m_filteredHeadData[FILTER_YAW]->Update(RAD_TO_DEG(data.h_yaw));
-		//m_filteredHeadData[FILTER_VERT]->Update(METERS_TO_CMS(data.h_height));
-		//m_filteredHeadData[FILTER_SIDEW]->Update(METERS_TO_CMS(data.h_width));
-		//// it doens't matter what number we pass as long as we've already called the roll and pitch filters
-		//m_filteredHeadData[FILTER_LEAN]->Update(0);
+		//m_filteredHeadData[FACEAPI_ROLL]->Update(data);
+
+		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
+			m_filteredHeadData[i]->Update(data);
 	}
 	else
 	{
 		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
-		{
 			m_filteredHeadData[i]->Update();
-		}
 	}
 }
 
 CameraOffsets HALTechnique::GetCameraShake()
 {
 	CameraOffsets offset;
-	//offset.pitch	= m_filteredHeadData[FILTER_PITCH]->GetValue();
+	offset.pitch	= m_filteredHeadData[FILTER_PITCH]->GetValue();
 	offset.roll		= m_filteredHeadData[FILTER_ROLL]->GetValue();
-	//offset.yaw		= m_filteredHeadData[FILTER_YAW]->GetValue();
-	//offset.vertOff	= m_filteredHeadData[FILTER_VERT]->GetValue();
-	//offset.horOff	= m_filteredHeadData[FILTER_SIDEW]->GetValue();
+	offset.yaw		= m_filteredHeadData[FILTER_YAW]->GetValue();
+	offset.vertOff	= m_filteredHeadData[FILTER_VERT]->GetValue();
+	offset.horOff	= m_filteredHeadData[FILTER_SIDEW]->GetValue();
 	return offset;
 }
 
 float HALTechnique::GetLeanAmount()
 {
-	return 0; //m_filteredHeadData[FILTER_LEAN]->GetValue();
+	return m_filteredHeadData[FILTER_LEAN]->GetValue();
 }
 
 float UTIL_GetLeanAmount()

@@ -16,7 +16,9 @@ PARTICULAR PURPOSE.
 
 #include "convar.h"
 
-extern float getCurrentTime();
+#define ENGINE_NOW engine->Time() 
+
+//gpGlobals->curtime
 
 #define engine_printf DevMsg
 #define engine_sprintf V_snprintf

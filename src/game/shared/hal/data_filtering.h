@@ -16,6 +16,7 @@ PARTICULAR PURPOSE.
 
 #include <map>
 #include <vector>
+#include "hal/faceapi.h"
 #include "engine_dependencies.h"
 
 
@@ -49,48 +50,59 @@ extern TunableVar hal_fadingDuration_s;
 class Filter
 {
 public:
-	Filter(Filter *parent = NULL) { 
-		if(parent)
-			AddParent(parent);
+	Filter(int dataIndex): m_dataIndex(dataIndex) {
 		m_pValue = 0.0f;
+		m_parent = NULL;
+	}
+	Filter(Filter *parent): m_parent(parent) {
+		m_pValue = 0.0f;
+		m_dataIndex = -1;
 	}
 
-	float Update(float value) {
-		float m_value = value;
+	virtual float Update(FaceAPIData headData) {
+		if(ENGINE_NOW == m_lastUpdate)
+			return m_pValue;
 
-		// We add the results of the parents together
-		if(m_parents.size() > 0) {
-			m_value = 0;
-			for(std::vector<Filter*>::iterator it = m_parents.begin(); it != m_parents.end(); ++it) {
-				m_value += (*it)->Update(value);
-			}
-		}
-		m_pValue = UpdateWorker(m_value);
+		m_lastUpdate = ENGINE_NOW;
+
+		float val = (m_parent) ? m_parent->Update(headData) : headData.h_headPos[m_dataIndex];
+		m_pValue = Update(val);
+		//DevMsg("val: %6.2f\n", m_pValue);
 		return m_pValue;
 	}
+
+	// This is main method to be replaced when creating a new filter type
+	virtual float Update(float value) { return value; }
 	virtual float Update() { return m_pValue; }
 	virtual float GetValue() { return m_pValue; }
 
-	virtual void Reset() {
-		// Propagate the reset
-		for(std::vector<Filter*>::iterator it = m_parents.begin(); it != m_parents.end(); ++it) {
-			(*it)->Reset();
-		}
-	}
-
-	void AddParent(Filter *parent) {
-		m_parents.push_back(parent);
-	}
+	virtual void Reset() {}
 
 protected:
-	// This is main method to be replaced when creating a new filter type
-	virtual float UpdateWorker(float value) { return value; }
+	float m_pValue;
+	int m_dataIndex;
+	Filter* m_parent;
+	float m_lastUpdate;
+};
+
+
+// Sums one or more filters. Requires that each of the sub-filters
+// have manually already been updated
+class SumFilter: public Filter
+{
+public:
+	SumFilter(Filter *parent1, Filter *parent2) : Filter(parent1) 
+	{
+		AddParent(parent2);
+	}
+
+	float Update(FaceAPIData headData);
+	void Reset();
+	void AddParent(Filter *parent) { m_parents.push_back(parent); }
 
 private:
 	std::vector<Filter*> m_parents;
-	float m_pValue;
 };
-
 
 
 // Smooths the value over a given timeframe
@@ -101,16 +113,13 @@ public:
 		: Filter(parent), m_duration(duration) { Reset(); }
 
 	void Reset();
-
-protected:
-	float UpdateWorker(float value);
+	float Update(float value);
 
 private:
 	TunableVar *m_duration;
 
 	std::map<float, float> m_timestampedValues;
 	float m_sum; // Uses a running sum for performance reasons
-	float m_lastUpdate;
 };
 
 
@@ -123,8 +132,7 @@ public:
 	NormaliseFilter(TunableVar *min = NULL, TunableVar *range = NULL, Filter *parent = NULL) 
 		: Filter(parent), m_min(min), m_range(range) {}
 
-protected:
-	float UpdateWorker(float value);
+	float Update(float value);
 
 private:	
 	TunableVar *m_min;
@@ -139,8 +147,7 @@ public:
 	ClampFilter(float min, float max, Filter *parent = NULL) 
 		: Filter(parent), m_min(min), m_max(max) {}
 
-protected:
-	float UpdateWorker(float value) { return clamp(value, m_min, m_max); }
+	float Update(float value) { return clamp(value, m_min, m_max); }
 
 private:
 	float m_min, m_max;
@@ -153,9 +160,8 @@ class EaseInFilter: public Filter
 public:
 	EaseInFilter(TunableVar *amount, Filter *parent = NULL) 
 		: Filter(parent), m_easeAmount(amount) {}
-
-protected:
-	float UpdateWorker(float value);
+	
+	float Update(float value);
 
 private:
 	TunableVar *m_easeAmount;
@@ -165,16 +171,13 @@ private:
 
 
 // Computes the running mean and subtracts it from the current value
-class MeanZeroFilter: public Filter
+class MeanOffsetFilter: public Filter
 {
 public:
-	MeanZeroFilter(Filter *parent = NULL) 
-		: Filter(parent) { Reset(); }
+	MeanOffsetFilter(int dataIndex): Filter(dataIndex) { Reset(); }
 
 	void Reset();
-
-protected:
-	float UpdateWorker(float value);
+	float Update(float value);
 
 private:
 	float m_sum;
@@ -185,16 +188,14 @@ private:
 
 // Computes the running mean and subtracts it from the current value. The mean
 // is only updated when the new values are close to the current mean
-class WeightedMeanZeroFilter: public Filter
+class WeightedMeanOffsetFilter: public Filter
 {
 public:
-	WeightedMeanZeroFilter(TunableVar *range, Filter *parent = NULL) 
-		: Filter(parent), m_range(range) { Reset(); }
+	WeightedMeanOffsetFilter(int dataIndex, TunableVar *range) 
+		: Filter(dataIndex), m_range(range) { Reset(); }
 
 	void Reset();
-
-protected:
-	float UpdateWorker(float value);
+	float Update(float value);
 
 private:
 	TunableVar *m_range;
@@ -211,8 +212,7 @@ public:
 	ScaleFilter(TunableVar *scale, Filter *parent = NULL) 
 		: Filter(parent), m_scale(scale) {}
 
-protected:
-	float UpdateWorker(float value);
+	float Update(float value);
 
 private:
 	TunableVar *m_scale;
@@ -227,14 +227,9 @@ public:
 	FadeFilter(TunableVar *duration, Filter *parent = NULL) 
 		: Filter(parent), m_duration(duration) { Reset(); }
 
-	// Ensures it always runs, even when the frame number is the same
-	float Update(float value, int frame = -1) { Update(value); }
-
 	void Reset();
 	float Update();
-
-protected:
-	float UpdateWorker(float value);
+	float Update(float value);
 	
 private:
 	float m_fadeInStart;

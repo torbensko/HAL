@@ -51,6 +51,25 @@ CREATE_CONVAR(adaptSmoothAmount_p,					100, 0, 300);
 CREATE_CONVAR(fadingDuration_s,						2, 0, 5);
 
 
+float SumFilter::Update(FaceAPIData headData)
+{
+	m_pValue = 0;
+	for(std::vector<Filter*>::iterator it = m_parents.begin(); it != m_parents.end(); ++it) {
+		m_pValue += (*it)->Update(headData);
+		DevMsg("val %.2f\n", (*it)->Update(headData));
+	}
+	return m_pValue;
+}
+
+void SumFilter::Reset()
+{
+	// Propagate the reset
+	for(std::vector<Filter*>::iterator it = m_parents.begin(); it != m_parents.end(); ++it) {
+		(*it)->Reset();
+	}
+}
+
+
 
 // SmoothFilter
 
@@ -62,27 +81,24 @@ void SmoothFilter::Reset()
 	m_lastUpdate = 0.0f;
 }
 
-float SmoothFilter::UpdateWorker(float value)
+float SmoothFilter::Update(float value)
 {
-	float now = engine->Time();
+	float now = ENGINE_NOW;
 
-	if(m_lastUpdate != now)
+	float cutOffTime = now - m_duration->GetFloat();
+
+	// Remove the out-of-date entries (may be a few after a tracking drop-out)
+	while(m_timestampedValues.size() > 0 && m_timestampedValues.begin()->first < cutOffTime)
 	{
-		m_lastUpdate = now;
-
-		float cutOffTime = now - m_duration->GetFloat();
-
-		// Remove the out-of-date entries (may be a few after a tracking drop-out)
-		while(m_timestampedValues.size() > 0 && m_timestampedValues.begin()->first < cutOffTime)
-		{
-			m_sum -= m_timestampedValues.begin()->second;
-			m_timestampedValues.erase(m_timestampedValues.begin());
-		}
-
-		// Add the new value
-		m_timestampedValues[now] = value;
-		m_sum = m_sum + value;
+		m_sum -= m_timestampedValues.begin()->second;
+		m_timestampedValues.erase(m_timestampedValues.begin());
 	}
+
+	// Add the new value
+	m_timestampedValues[now] = value;
+	m_sum += value;
+	DevMsg("%6.2f %d\n", ENGINE_NOW, m_timestampedValues.size()); 
+
 	return m_sum / m_timestampedValues.size();
 }
 
@@ -90,7 +106,7 @@ float SmoothFilter::UpdateWorker(float value)
 
 // NormaliseFilter
 
-float NormaliseFilter::UpdateWorker(float value)
+float NormaliseFilter::Update(float value)
 {
 	if(value == 0.0f)
 		return value;
@@ -113,7 +129,7 @@ float NormaliseFilter::UpdateWorker(float value)
 
 // EaseInFilter
 
-float EaseInFilter::UpdateWorker(float value)
+float EaseInFilter::Update(float value)
 {
 	if(value == 0.0f)
 		return value;
@@ -124,9 +140,9 @@ float EaseInFilter::UpdateWorker(float value)
 
 
 
-// MeanZeroFilter
+// MeanOffsetFilter
 
-float MeanZeroFilter::UpdateWorker(float value) 
+float MeanOffsetFilter::Update(float value) 
 {
 	m_sum += value;
 	m_count++;
@@ -134,7 +150,7 @@ float MeanZeroFilter::UpdateWorker(float value)
 	return value - m_sum/m_count;
 }
 
-void MeanZeroFilter::Reset() 
+void MeanOffsetFilter::Reset() 
 {
 	Filter::Reset();
 	m_sum = 0;
@@ -143,9 +159,9 @@ void MeanZeroFilter::Reset()
 
 
 
-// WeightedMeanZeroFilter
+// WeightedMeanOffsetFilter
 
-float WeightedMeanZeroFilter::UpdateWorker(float value) 
+float WeightedMeanOffsetFilter::Update(float value) 
 {
 	if(m_count == 0.0f) 
 	{
@@ -163,7 +179,7 @@ float WeightedMeanZeroFilter::UpdateWorker(float value)
 	return value - m_sum/m_count;
 }
 
-void WeightedMeanZeroFilter::Reset() 
+void WeightedMeanOffsetFilter::Reset() 
 {
 	Filter::Reset();
 	m_sum = 0;
@@ -174,7 +190,7 @@ void WeightedMeanZeroFilter::Reset()
 
 // ScaleFilter
 
-float ScaleFilter::UpdateWorker(float value) 
+float ScaleFilter::Update(float value) 
 {
 	return value * m_scale->GetFloat();
 }
@@ -194,9 +210,9 @@ void FadeFilter::Reset()
 	m_prevVal = 0.0f;
 }
 
-float FadeFilter::UpdateWorker(float value)
+float FadeFilter::Update(float value)
 {
-	float now = engine->Time();
+	float now = ENGINE_NOW;
 
 	if(m_fadeInEnd == 0)
 	{
@@ -216,7 +232,7 @@ float FadeFilter::UpdateWorker(float value)
 
 float FadeFilter::Update()
 {
-	float now = engine->Time();
+	float now = ENGINE_NOW;
 
 	if(m_fadeOutEnd == 0)
 	{

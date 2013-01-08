@@ -26,19 +26,20 @@ typedef struct smEngineHandle__* smEngineHandle;
 // Once the faceAPI 4 has been publicly released, uncomment this line to use it
 //#define USE_FACEAPI_4
 
+#define FACEAPI_ROLL	0
+#define FACEAPI_YAW		1
+#define FACEAPI_PITCH	2
+#define FACEAPI_VERT	3
+#define FACEAPI_SIDEW	4
+#define FACEAPI_DEPTH	5
+
 class FaceAPIData
 {
 public:
 	FaceAPIData();
 
-	float			h_pitch;
-	float			h_yaw;
-	float			h_roll;
-	float			h_depth;
-	float			h_width;
-	float			h_height;
+	float			h_headPos[6];
 	float			h_confidence;
-	float			h_frameDuration;
 	unsigned int	h_frameNum;
 };
 
@@ -69,7 +70,6 @@ protected:
 	FaceAPIData		m_data[3];
 	int				m_currData;
 	int				m_nextData;
-	float			m_lastUpdate;
 
 	bool			m_shuttingDown;
 

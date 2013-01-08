@@ -2829,10 +2829,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\shared\hal\engine_dependencies_Source.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\shared\hal\faceapi.cpp"
 					>
 				</File>
