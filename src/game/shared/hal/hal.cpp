@@ -137,11 +137,11 @@ void HALTechnique::Update()
 		m_handyScaleAuto->SetValue(
 				1 - min(1, hal_leanStabilise_p.GetFloat()/100.0f * fabs(m_filteredHeadData[FILTER_LEAN]->GetValue())) );
 		
-		DevMsg("adapt: %6.2f, handy: %6.2f\n", adapt, m_handyScaleAuto->GetFloat());
+		//DevMsg("adapt: %6.2f, handy: %6.2f\n", adapt, m_handyScaleAuto->GetFloat());
 
-		//m_filteredHeadData[FILTER_LEAN]->Update(data);
-		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
-			m_filteredHeadData[i]->Update(data);
+		m_filteredHeadData[FILTER_ROLL]->Update(data);
+		//for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
+		//	m_filteredHeadData[i]->Update(data);
 	}
 	else
 	{

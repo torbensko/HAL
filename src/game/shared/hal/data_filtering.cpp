@@ -228,6 +228,8 @@ float FadeFilter::Update(float value)
 		return value;
 
 	float p = (now - m_fadeInStart) / (m_fadeInEnd - m_fadeInStart);
+	p = SimpleSpline(p);
+
 	return (1 - p) * m_prevVal + p * value;
 }
 
@@ -248,7 +250,10 @@ float FadeFilter::Update()
 		return 0.0f;
 
 	float p = (now - m_fadeOutStart) / (m_fadeOutEnd - m_fadeOutStart);
-	return (1 - p) * m_prevVal;
+	p = SimpleSpline(p);
+
+	m_pValue = (1 - p) * m_prevVal;
+	return m_pValue;
 }
 
 
