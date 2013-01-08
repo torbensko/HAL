@@ -44,6 +44,7 @@ public:
 	void				Update();
 	float				GetLeanAmount();
 	CameraOffsets		GetCameraShake();
+	void				Reset();
 
 private:
 	SmoothFilter		*m_smoothedConf;
@@ -57,6 +58,7 @@ private:
 
 float			UTIL_GetLeanAmount();
 CameraOffsets	UTIL_GetHandycamShake();
+void			UTIL_ResetHeadPosition();
 
 
 #endif

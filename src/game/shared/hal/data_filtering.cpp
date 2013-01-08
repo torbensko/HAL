@@ -23,11 +23,11 @@ PARTICULAR PURPOSE.
 #define CREATE_CONVAR(name, val, min, max) \
 	TunableVar hal_##name = TunableVar("hal_"#name, #val, FCVAR_ARCHIVE, "", true, min, true, max);
 
-CREATE_CONVAR(leanScale_f,							1, 0, 2);
 CREATE_CONVAR(leanOffsetMin_cm,						2, 0, 10);
 CREATE_CONVAR(leanOffsetRange_cm,					15, 0, 50);
 CREATE_CONVAR(leanRollMin_deg,						3, 0, 10);
-CREATE_CONVAR(leanRollRange_deg,					30, 0, 90);
+CREATE_CONVAR(leanRollRange_deg,					20, 0, 90);
+
 CREATE_CONVAR(leanStabilise_p,						50, 0, 100);
 CREATE_CONVAR(leanSmoothing_sec,					0.2, 0.05, 1);
 CREATE_CONVAR(leanEaseIn_p,							50, 0, 100);
@@ -36,12 +36,14 @@ CREATE_CONVAR(handyScale_f,							1, 0, 2);
 CREATE_CONVAR(handyScalePitch_f,					1, 0, 3);
 CREATE_CONVAR(handyScaleRoll_f,						1, 0, 3);
 CREATE_CONVAR(handyScaleYaw_f,						1, 0, 3);
-CREATE_CONVAR(handyScaleOffsets_f,					1, 0, 3);
+CREATE_CONVAR(handyScaleVert_f,						1, 0, 3);
+CREATE_CONVAR(handyScaleSidew_f,					1, 0, 3);
+
 CREATE_CONVAR(handySmoothing_sec,					0.2, 0, 1);
 
-CREATE_CONVAR(handyMaxPitch_deg,					30, 0, 180);
-CREATE_CONVAR(handyMaxYaw_deg,						45, 0, 180);
-CREATE_CONVAR(handyMaxRoll_deg,						30, 0, 180);
+CREATE_CONVAR(handyMaxPitch_deg,					30, 0, 90);
+CREATE_CONVAR(handyMaxYaw_deg,						30, 0, 90);
+CREATE_CONVAR(handyMaxRoll_deg,						45, 0, 90);
 CREATE_CONVAR(handyMaxVert_cm,						10, 0, 50);
 CREATE_CONVAR(handyMaxSidew_cm,						15, 0, 50);
 

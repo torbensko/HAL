@@ -1,6 +1,7 @@
 #include "cbase.h"
 
 #include "hal/settings_panel.h"
+#include "hal/hal.h"
 
 #include <vgui/ILocalize.h>
 
@@ -21,7 +22,7 @@ CON_COMMAND(ShowHeadOptions, NULL)
 
 CON_COMMAND(ResetHeadPosition, NULL)
 {
-	//GetHTGame()->MakeCurrentHeadPositionNeutral();
+	UTIL_ResetHeadPosition();
 }
 
 
@@ -207,21 +208,24 @@ CHTSettingsPanel::CHTSettingsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "He
 {
  	SetParent(parent);
 
- 	//vgui::HScheme scheme = vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme");
- 	//SetScheme( scheme );
-
 	// general-setting:
 	HT_OPTION_CREATE(adaptSmoothAmount_p);
 
-	// handy-cam options	
+	// handy-cam options
+	HT_OPTION_CREATE(handySmoothing_sec);
+
 	HT_OPTION_CREATE(handyScale_f);
 	HT_OPTION_CREATE(handyScalePitch_f);
 	HT_OPTION_CREATE(handyScaleRoll_f);
 	HT_OPTION_CREATE(handyScaleYaw_f);
-	HT_OPTION_CREATE(handyScaleOffsets_f);
-	HT_OPTION_CREATE(adaptSmoothConfSample_sec);
+	HT_OPTION_CREATE(handyScaleVert_f);
+	HT_OPTION_CREATE(handyScaleSidew_f);
+
 	HT_OPTION_CREATE(handyMaxPitch_deg);
 	HT_OPTION_CREATE(handyMaxYaw_deg);
+	HT_OPTION_CREATE(handyMaxRoll_deg);
+	HT_OPTION_CREATE(handyMaxVert_cm);
+	HT_OPTION_CREATE(handyMaxSidew_cm);
 
 	// leaning options
 	HT_OPTION_CREATE(leanOffsetMin_cm);
@@ -229,25 +233,10 @@ CHTSettingsPanel::CHTSettingsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "He
 	HT_OPTION_CREATE(leanRollMin_deg);
 	HT_OPTION_CREATE(leanRollRange_deg);
 	HT_OPTION_CREATE(leanSmoothing_sec);
-	HT_OPTION_CREATE(leanScale_f);
 	HT_OPTION_CREATE(leanEaseIn_p);
 	HT_OPTION_CREATE(leanStabilise_p);
-	//HT_OPTION_CREATE(leanButtonAmount_p);
-
-
-	//std::map<int,char*> values;
-	//values[DROPOUT_OPTION_NOTHING] = "Nothing";
-	//values[DROPOUT_OPTION_NOTIFY] = "Notify";
-	//values[DROPOUT_OPTION_PAUSING] = "Pause";
-	//m_dropoutOpt = vgui::SETUP_PANEL(new HTComboBox(this, "DropoutOpt", values.size(), values, &fo_dropoutOpt));
-
-	//std::map<int,char*> resetValues;
-	//resetValues[RESET_OPTION_FULL]		= "Hard reset";
-	//resetValues[RESET_OPTION_POSITION]	= "Soft reset";
-	//m_resetOpt = vgui::SETUP_PANEL(new HTComboBox(this, "ResetOpt", resetValues.size(), resetValues, &fo_resetOpt));
 
 	m_resetToDefaults = vgui::SETUP_PANEL(new vgui::Button(this, "RestoreDefaults", ""));
-	//m_resetNeutral = vgui::SETUP_PANEL(new vgui::Button(this, "ResetNeutral", ""));
 	m_close = vgui::SETUP_PANEL(new vgui::Button(this, "Close", ""));
 	
 	// sets their position
@@ -257,14 +246,20 @@ CHTSettingsPanel::CHTSettingsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "He
 	HT_OPTION_SETUP(adaptSmoothAmount_p);
 
 	// handy-cam options
+	HT_OPTION_SETUP(handySmoothing_sec);
+
 	HT_OPTION_SETUP(handyScale_f);
 	HT_OPTION_SETUP(handyScalePitch_f);
 	HT_OPTION_SETUP(handyScaleRoll_f);
 	HT_OPTION_SETUP(handyScaleYaw_f);
-	HT_OPTION_SETUP(handyScaleOffsets_f);
-	HT_OPTION_SETUP(adaptSmoothConfSample_sec);
+	HT_OPTION_SETUP(handyScaleVert_f);
+	HT_OPTION_SETUP(handyScaleSidew_f);
+
 	HT_OPTION_SETUP(handyMaxPitch_deg);
 	HT_OPTION_SETUP(handyMaxYaw_deg);
+	HT_OPTION_SETUP(handyMaxRoll_deg);
+	HT_OPTION_SETUP(handyMaxVert_cm);
+	HT_OPTION_SETUP(handyMaxSidew_cm);
 
 	// leaning options
 	HT_OPTION_SETUP(leanOffsetMin_cm);
@@ -272,13 +267,10 @@ CHTSettingsPanel::CHTSettingsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "He
 	HT_OPTION_SETUP(leanRollMin_deg);
 	HT_OPTION_SETUP(leanRollRange_deg);
 	HT_OPTION_SETUP(leanSmoothing_sec);
-	HT_OPTION_SETUP(leanScale_f);
 	HT_OPTION_SETUP(leanEaseIn_p);
-	//HT_OPTION_SETUP(leanButtonAmount_p);
 	HT_OPTION_SETUP(leanStabilise_p);
 
 	// Buttons:
-	//m_resetNeutral->SetCommand("ResetNeutral");
 	m_resetToDefaults->SetCommand("RestoreDefaults");
 	m_close->SetCommand("Close");
 
@@ -290,29 +282,30 @@ CHTSettingsPanel::CHTSettingsPanel( vgui::VPANEL parent ) : BaseClass( NULL, "He
 void CHTSettingsPanel::OnCommand(const char* command)
 {
 	if(!stricmp(command, "RestoreDefaults")) 
-	{
-		//HT_OPTION_REVERT(dropoutOpt);
-		//HT_OPTION_REVERT(resetOpt);
-		//fo_showData.Revert();
-		
+	{	
 		HT_OPTION_REVERT(leanOffsetMin_cm);
 		HT_OPTION_REVERT(leanOffsetRange_cm);
 		HT_OPTION_REVERT(leanRollMin_deg);
 		HT_OPTION_REVERT(leanRollRange_deg);
 		HT_OPTION_REVERT(leanSmoothing_sec);
-		HT_OPTION_REVERT(leanScale_f);
 		HT_OPTION_REVERT(leanEaseIn_p);
-		//HT_OPTION_REVERT(leanButtonAmount_p);
 		HT_OPTION_REVERT(leanStabilise_p);
 		
+		HT_OPTION_REVERT(handySmoothing_sec);
+
 		HT_OPTION_REVERT(handyScale_f);
 		HT_OPTION_REVERT(handyScalePitch_f);
 		HT_OPTION_REVERT(handyScaleRoll_f);
 		HT_OPTION_REVERT(handyScaleYaw_f);
-		HT_OPTION_REVERT(handyScaleOffsets_f);
-		HT_OPTION_REVERT(adaptSmoothConfSample_sec);
+		HT_OPTION_REVERT(handyScaleVert_f);
+		HT_OPTION_REVERT(handyScaleSidew_f);
+
 		HT_OPTION_REVERT(handyMaxPitch_deg);
 		HT_OPTION_REVERT(handyMaxYaw_deg);
+		HT_OPTION_REVERT(handyMaxRoll_deg);
+		HT_OPTION_REVERT(handyMaxVert_cm);
+		HT_OPTION_REVERT(handyMaxSidew_cm);
+
 		HT_OPTION_REVERT(adaptSmoothAmount_p);
 	}
 	else if(!stricmp(command, "ResetNeutral"))

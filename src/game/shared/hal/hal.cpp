@@ -78,7 +78,7 @@ void HALTechnique::Init()
 	m_filteredHeadData[FILTER_VERT] =
 			new FadeFilter(&hal_fadingDuration_s, 
 				new LimitFilter(&hal_handyMaxVert_cm,
-					new ScaleFilter(&hal_handyScaleOffsets_f, 
+					new ScaleFilter(&hal_handyScaleVert_f, 
 						new ScaleFilter(&hal_handyScale_f,
 							new ScaleFilter(m_handyScaleAuto,
 								new SmoothFilter(m_handySmoothing_auto, meanVert) )))));
@@ -86,7 +86,7 @@ void HALTechnique::Init()
 	m_filteredHeadData[FILTER_SIDEW] = 
 			new FadeFilter(&hal_fadingDuration_s, 
 				new LimitFilter(&hal_handyMaxSidew_cm, 
-					new ScaleFilter(&hal_handyScaleOffsets_f, 
+					new ScaleFilter(&hal_handyScaleSidew_f, 
 						new ScaleFilter(&hal_handyScale_f,
 							new ScaleFilter(m_handyScaleAuto,
 								new SmoothFilter(m_handySmoothing_auto, meanSidew) )))));
@@ -94,15 +94,13 @@ void HALTechnique::Init()
 	m_filteredHeadData[FILTER_LEAN] =
 			new FadeFilter(&hal_fadingDuration_s,
 				new EaseInFilter(&hal_leanEaseIn_p, 
-					new ClampFilter(-1, 1, 
-						new ScaleFilter(&hal_leanScale_f, 
-							new SumFilter(
-								new NormaliseFilter(&hal_leanRollMin_deg, &hal_leanRollRange_deg, 
-									new SmoothFilter(m_leanSmoothing_auto, meanRoll)
-								),
-								new NormaliseFilter(&hal_leanOffsetMin_cm, &hal_leanOffsetRange_cm,
-									new SmoothFilter(m_leanSmoothing_auto, meanSidew)
-								)
+					new ClampFilter(-1, 1,
+						new SumFilter(
+							new NormaliseFilter(&hal_leanRollMin_deg, &hal_leanRollRange_deg, 
+								new SmoothFilter(m_leanSmoothing_auto, meanRoll)
+							),
+							new NormaliseFilter(&hal_leanOffsetMin_cm, &hal_leanOffsetRange_cm,
+								new SmoothFilter(m_leanSmoothing_auto, meanSidew)
 							)
 						)
 					)
@@ -139,15 +137,20 @@ void HALTechnique::Update()
 		
 		//DevMsg("adapt: %6.2f, handy: %6.2f\n", adapt, m_handyScaleAuto->GetFloat());
 
-		m_filteredHeadData[FILTER_ROLL]->Update(data);
-		//for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
-		//	m_filteredHeadData[i]->Update(data);
+		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
+			m_filteredHeadData[i]->Update(data);
 	}
 	else
 	{
 		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
 			m_filteredHeadData[i]->Update();
 	}
+}
+
+void HALTechnique::Reset()
+{
+	for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
+		m_filteredHeadData[i]->Reset();
 }
 
 CameraOffsets HALTechnique::GetCameraShake()
@@ -174,4 +177,10 @@ float UTIL_GetLeanAmount()
 CameraOffsets UTIL_GetHandycamShake()
 {
 	return (__hal) ? __hal->GetCameraShake() : CameraOffsets();
+}
+
+void UTIL_ResetHeadPosition()
+{
+	if(__hal)
+		__hal->Reset();
 }
