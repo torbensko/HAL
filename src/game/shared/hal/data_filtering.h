@@ -59,21 +59,22 @@ public:
 	Filter(int dataIndex): m_dataIndex(dataIndex) {
 		m_pValue = 0.0f;
 		m_parent = NULL;
+		m_lastUpdate = 0.0f;
 	}
 	Filter(Filter *parent): m_parent(parent) {
 		m_pValue = 0.0f;
 		m_dataIndex = -1;
+		m_lastUpdate = 0.0f;
 	}
 
 	virtual float Update(FaceAPIData headData) {
 		if(ENGINE_NOW == m_lastUpdate)
 			return m_pValue;
 
-		m_lastUpdate = ENGINE_NOW;
-
 		float val = (m_parent) ? m_parent->Update(headData) : headData.h_headPos[m_dataIndex];
 		m_pValue = Update(val);
 
+		m_lastUpdate = ENGINE_NOW;
 		return m_pValue;
 	}
 
@@ -114,7 +115,28 @@ private:
 };
 
 
+
+
 // Smooths the value over a given timeframe
+class MovingMeanFilter: public Filter
+{
+public:
+	MovingMeanFilter(TunableVar *duration, Filter *parent = NULL) 
+		: Filter(parent), m_duration(duration) { Reset(); }
+
+	void Reset();
+	float Update(float value);
+	virtual char* GetClass() { return "MovingMeanFilter"; }
+
+private:
+	TunableVar *m_duration;
+
+	std::map<float, float> m_timestampedValues;
+	float m_sum; // Uses a running sum for performance reasons
+};
+
+
+// Smooths the value, favouring the more recent values
 class SmoothFilter: public Filter
 {
 public:
@@ -128,9 +150,10 @@ public:
 private:
 	TunableVar *m_duration;
 
-	std::map<float, float> m_timestampedValues;
-	float m_sum; // Uses a running sum for performance reasons
+	float m_sum;
+	float m_count;
 };
+
 
 
 
@@ -217,6 +240,8 @@ private:
 	float m_sum;
 	float m_count;
 };
+
+
 
 
 

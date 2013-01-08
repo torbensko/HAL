@@ -40,7 +40,7 @@ void HALTechnique::Init()
 	// Setup the filtering of the head data:
 	m_handySmoothing_auto = new TunableVar("hal_handySmoothing_auto", "-1", 0); // for increasing the smoothing during low confidence periods
 	m_leanSmoothing_auto = new TunableVar("hal_leanSmoothing_auto", "-1", 0);
-	m_smoothedConf = new SmoothFilter(&hal_adaptSmoothConfSample_sec);
+	m_smoothedConf = new MovingMeanFilter(&hal_adaptSmoothConfSample_sec);
 	m_handyScaleAuto = new TunableVar("hal_handyScale_auto", "-1", 0); // for suppressing the handycam while leaning
 
 	// These are used by both the handy-cam and leaning, hence why we create them first
@@ -97,10 +97,10 @@ void HALTechnique::Init()
 					new ClampFilter(-1, 1,
 						new SumFilter(
 							new NormaliseFilter(&hal_leanRollMin_deg, &hal_leanRollRange_deg, 
-								new SmoothFilter(m_leanSmoothing_auto, meanRoll)
+								new MovingMeanFilter(m_leanSmoothing_auto, meanRoll)
 							),
 							new NormaliseFilter(&hal_leanOffsetMin_cm, &hal_leanOffsetRange_cm,
-								new SmoothFilter(m_leanSmoothing_auto, meanSidew)
+								new MovingMeanFilter(m_leanSmoothing_auto, meanSidew)
 							)
 						)
 					)
@@ -139,6 +139,7 @@ void HALTechnique::Update()
 
 		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
 			m_filteredHeadData[i]->Update(data);
+		//m_filteredHeadData[FILTER_ROLL]->Update(data);
 	}
 	else
 	{

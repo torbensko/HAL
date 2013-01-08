@@ -47,7 +47,7 @@ public:
 	void				Reset();
 
 private:
-	SmoothFilter		*m_smoothedConf;
+	MovingMeanFilter		*m_smoothedConf;
 	Filter				*m_filteredHeadData[6];
 	FaceAPI				m_faceAPI;
 

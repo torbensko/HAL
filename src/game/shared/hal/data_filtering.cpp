@@ -35,11 +35,11 @@ CREATE_CONVAR(leanEaseIn_p,							50, 0, 100);
 CREATE_CONVAR(handyScale_f,							1, 0, 2);
 CREATE_CONVAR(handyScalePitch_f,					1, 0, 3);
 CREATE_CONVAR(handyScaleRoll_f,						1, 0, 3);
-CREATE_CONVAR(handyScaleYaw_f,						1, 0, 3);
+CREATE_CONVAR(handyScaleYaw_f,						0.6, 0, 3);
 CREATE_CONVAR(handyScaleVert_f,						1, 0, 3);
 CREATE_CONVAR(handyScaleSidew_f,					1, 0, 3);
 
-CREATE_CONVAR(handySmoothing_sec,					0.2, 0, 1);
+CREATE_CONVAR(handySmoothing_sec,					0.1, 0, 0.5);
 
 CREATE_CONVAR(handyMaxPitch_deg,					30, 0, 90);
 CREATE_CONVAR(handyMaxYaw_deg,						30, 0, 90);
@@ -53,7 +53,7 @@ CREATE_CONVAR(adaptSmoothMinConf_f,					0.5, 0, 1);
 CREATE_CONVAR(adaptSmoothMaxConf_f,					0.9, 0, 2);
 CREATE_CONVAR(adaptSmoothAmount_p,					100, 0, 300);
 
-CREATE_CONVAR(fadingDuration_s,						2, 0, 5);
+CREATE_CONVAR(fadingDuration_s,						1, 0, 5);
 
 
 float SumFilter::Update(FaceAPIData headData)
@@ -75,17 +75,16 @@ void SumFilter::Reset()
 
 
 
-// SmoothFilter
+// MovingMeanFilter
 
-void SmoothFilter::Reset()
+void MovingMeanFilter::Reset()
 {
 	Filter::Reset();
 	m_timestampedValues.clear();
 	m_sum = 0.0f;
-	m_lastUpdate = 0.0f;
 }
 
-float SmoothFilter::Update(float value)
+float MovingMeanFilter::Update(float value)
 {
 	float now = ENGINE_NOW;
 
@@ -104,6 +103,29 @@ float SmoothFilter::Update(float value)
 
 	return m_sum / m_timestampedValues.size();
 }
+
+
+// SmoothFilter
+
+void SmoothFilter::Reset()
+{
+	Filter::Reset();
+	m_sum = 0.0f;
+	m_count = 0.0f;
+}
+
+float SmoothFilter::Update(float value) 
+{
+	float now = ENGINE_NOW;
+
+	if(now == m_lastUpdate || m_duration->GetFloat() == 0)
+		return m_pValue;
+
+	float damp = clamp((now - m_lastUpdate) / m_duration->GetFloat(), 0, 1);
+	return (1 - damp) * m_pValue + damp * value;
+}
+
+
 
 
 
