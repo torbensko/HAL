@@ -134,10 +134,9 @@ void HALTechnique::Update()
 		
 		DevMsg("adapt: %6.2f, handy: %6.2f\n", adapt, m_handyScaleAuto->GetFloat());
 
-		//m_filteredHeadData[FACEAPI_ROLL]->Update(data);
-
-		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
-			m_filteredHeadData[i]->Update(data);
+		//for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
+		//	m_filteredHeadData[i]->Update(data);
+		m_filteredHeadData[FILTER_LEAN]->Update(data);
 	}
 	else
 	{

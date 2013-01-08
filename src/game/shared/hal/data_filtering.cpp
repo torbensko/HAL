@@ -17,7 +17,7 @@ PARTICULAR PURPOSE.
 #include "hal/util.h"
 
 
-#define EASE_MAX_POWER 3
+#define EASE_MAX_POWER 2
 
 
 #define CREATE_CONVAR(name, val, min, max) \
@@ -30,7 +30,7 @@ CREATE_CONVAR(leanRollMin_deg,						3, 0, 10);
 CREATE_CONVAR(leanRollRange_deg,					30, 0, 90);
 CREATE_CONVAR(leanStabilise_p,						50, 0, 100);
 CREATE_CONVAR(leanSmoothing_sec,					0.2, 0.05, 1);
-CREATE_CONVAR(leanEaseIn_p,							100, 0, 100);
+CREATE_CONVAR(leanEaseIn_p,							50, 0, 100);
 
 CREATE_CONVAR(handyScale_f,							1, 0, 2);
 CREATE_CONVAR(handyScalePitch_f,					1, 0, 3);
@@ -40,7 +40,6 @@ CREATE_CONVAR(handyScaleOffsets_f,					1, 0, 3);
 CREATE_CONVAR(handyMaxPitch_deg,					0, 0, 90);
 CREATE_CONVAR(handyMaxYaw_deg,						0, 0, 90);
 CREATE_CONVAR(handySmoothing_sec,					0.2, 0, 1);
-
 
 // Adpative smoothing - we smooth more when the confidence is low
 CREATE_CONVAR(adaptSmoothConfSample_sec,			0.2, 0, 1);
@@ -56,7 +55,6 @@ float SumFilter::Update(FaceAPIData headData)
 	m_pValue = 0;
 	for(std::vector<Filter*>::iterator it = m_parents.begin(); it != m_parents.end(); ++it) {
 		m_pValue += (*it)->Update(headData);
-		DevMsg("val %.2f\n", (*it)->Update(headData));
 	}
 	return m_pValue;
 }
@@ -97,7 +95,6 @@ float SmoothFilter::Update(float value)
 	// Add the new value
 	m_timestampedValues[now] = value;
 	m_sum += value;
-	DevMsg("%6.2f %d\n", ENGINE_NOW, m_timestampedValues.size()); 
 
 	return m_sum / m_timestampedValues.size();
 }

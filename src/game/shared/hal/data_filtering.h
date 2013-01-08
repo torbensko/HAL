@@ -67,7 +67,7 @@ public:
 
 		float val = (m_parent) ? m_parent->Update(headData) : headData.h_headPos[m_dataIndex];
 		m_pValue = Update(val);
-		//DevMsg("val: %6.2f\n", m_pValue);
+		DevMsg("%s: %6.2f\n", GetClass(), m_pValue);
 		return m_pValue;
 	}
 
@@ -75,6 +75,7 @@ public:
 	virtual float Update(float value) { return value; }
 	virtual float Update() { return m_pValue; }
 	virtual float GetValue() { return m_pValue; }
+	virtual char* GetClass() { return "Filter"; }
 
 	virtual void Reset() {}
 
@@ -91,14 +92,16 @@ protected:
 class SumFilter: public Filter
 {
 public:
-	SumFilter(Filter *parent1, Filter *parent2) : Filter(parent1) 
+	SumFilter(Filter *parent1, Filter *parent2) : Filter(NULL) 
 	{
+		AddParent(parent1);
 		AddParent(parent2);
 	}
 
 	float Update(FaceAPIData headData);
 	void Reset();
 	void AddParent(Filter *parent) { m_parents.push_back(parent); }
+	virtual char* GetClass() { return "SumFilter"; }
 
 private:
 	std::vector<Filter*> m_parents;
@@ -114,6 +117,7 @@ public:
 
 	void Reset();
 	float Update(float value);
+	virtual char* GetClass() { return "SmoothFilter"; }
 
 private:
 	TunableVar *m_duration;
@@ -133,6 +137,7 @@ public:
 		: Filter(parent), m_min(min), m_range(range) {}
 
 	float Update(float value);
+	virtual char* GetClass() { return "NormaliseFilter"; }
 
 private:	
 	TunableVar *m_min;
@@ -148,6 +153,7 @@ public:
 		: Filter(parent), m_min(min), m_max(max) {}
 
 	float Update(float value) { return clamp(value, m_min, m_max); }
+	virtual char* GetClass() { return "ClampFilter"; }
 
 private:
 	float m_min, m_max;
@@ -162,6 +168,7 @@ public:
 		: Filter(parent), m_easeAmount(amount) {}
 	
 	float Update(float value);
+	virtual char* GetClass() { return "EaseInFilter"; }
 
 private:
 	TunableVar *m_easeAmount;
@@ -178,6 +185,7 @@ public:
 
 	void Reset();
 	float Update(float value);
+	virtual char* GetClass() { return "MeanOffsetFilter"; }
 
 private:
 	float m_sum;
@@ -196,6 +204,7 @@ public:
 
 	void Reset();
 	float Update(float value);
+	virtual char* GetClass() { return "WeightedMeanOffsetFilter"; }
 
 private:
 	TunableVar *m_range;
@@ -213,6 +222,7 @@ public:
 		: Filter(parent), m_scale(scale) {}
 
 	float Update(float value);
+	virtual char* GetClass() { return "ScaleFilter"; }
 
 private:
 	TunableVar *m_scale;
@@ -230,6 +240,7 @@ public:
 	void Reset();
 	float Update();
 	float Update(float value);
+	virtual char* GetClass() { return "FadeFilter"; }
 	
 private:
 	float m_fadeInStart;

@@ -60,8 +60,8 @@ void CViewRender::ApplyHeadShake(CViewSetup *view)
 	float width		=     CMS_TO_SOURCE(shake.horOff);
 	float height	= max(CMS_TO_SOURCE(shake.vertOff), 0);
 
-	view->origin.y -= width * cos(DEG_TO_RAD(view->angles[YAW]));
-	view->origin.x += width * sin(DEG_TO_RAD(view->angles[YAW]));
+	view->origin.y += width * cos(DEG_TO_RAD(view->angles[YAW]));
+	view->origin.x -= width * sin(DEG_TO_RAD(view->angles[YAW]));
 	view->origin.z += height;
 
 	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
