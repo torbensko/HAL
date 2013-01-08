@@ -507,40 +507,34 @@ void DrawAllDebugOverlays( void )
 CServerGameDLL g_ServerGameDLL;
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR(CServerGameDLL, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL, g_ServerGameDLL);
 
-//Tony; added to fetch the gameinfo file and mount additional content.
+
+// see: https://developer.valvesoftware.com/wiki/Mounting_multiple_games
 static void MountAdditionalContent()
 {
-	KeyValues *pMainFile, *pFileSystemInfo;
-	char gamePath[256];
-	engine->GetGameDir( gamePath, 256 );
-	Q_StripTrailingSlash( gamePath );
-
-	int nExtraContentId = -1;
-	
-	pMainFile = new KeyValues( "gameinfo.txt" );
-//On linux because of case sensitiviy we need to check for both.
-#ifdef _LINUX
-	if ( pMainFile->LoadFromFile( filesystem, UTIL_VarArgs("%s/GameInfo.txt", gamePath), "MOD" ) )
-	{
-		pFileSystemInfo = pMainFile->FindKey( "FileSystem" );
-		if (pFileSystemInfo)
-			nExtraContentId = pFileSystemInfo->GetInt( "AdditionalContentId", -1 );
-	}
-	else
+	KeyValues *pMainFile = new KeyValues( "gameinfo.txt" );
+#ifndef _WINDOWS
+	// case sensitivity
+	pMainFile->LoadFromFile( filesystem, "GameInfo.txt", "MOD" );
+	if (!pMainFile)
 #endif
-	if ( pMainFile->LoadFromFile( filesystem, UTIL_VarArgs("%s/gameinfo.txt", gamePath), "MOD" ) )
+	pMainFile->LoadFromFile( filesystem, "gameinfo.txt", "MOD" );
+ 
+	if (pMainFile)
 	{
-		pFileSystemInfo = pMainFile->FindKey( "FileSystem" );
+		KeyValues* pFileSystemInfo = pMainFile->FindKey( "FileSystem" );
 		if (pFileSystemInfo)
-			nExtraContentId = pFileSystemInfo->GetInt( "AdditionalContentId", -1 );
-	}
+			for ( KeyValues *pKey = pFileSystemInfo->GetFirstSubKey(); pKey; pKey = pKey->GetNextKey() )
+			{
+				if ( strcmp(pKey->GetName(),"AdditionalContentId") == 0 )
+				{
+					int appid = abs(pKey->GetInt());
+					if (appid)
+						if( filesystem->MountSteamContent(-appid) != FILESYSTEM_MOUNT_OK )
+							Warning("Unable to mount extra content with appId: %i\n", appid);
+				}
+			}
+	}	
 	pMainFile->deleteThis();
-
-	if (nExtraContentId != -1)
-	{
-		if( filesystem->MountSteamContent(-nExtraContentId) != FILESYSTEM_MOUNT_OK )
-			Warning("Unable to mount extra content with appId: %i\n", nExtraContentId);
-	}
 }
 
 

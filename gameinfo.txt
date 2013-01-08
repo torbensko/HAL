@@ -9,7 +9,11 @@
 	FileSystem
 	{
 		SteamAppId				218 	
-		ToolsAppId				211		
+		ToolsAppId				211	
+		
+		AdditionalContentId		220 	//HL2
+		//AdditionalContentId 	380 	//Ep1
+		//AdditionalContentId 	420 	//Ep2`	
 		
 		SearchPaths
 		{

@@ -651,26 +651,35 @@ CHLClient::CHLClient()
 
 
 extern IGameSystem *ViewportClientSystem();
-//Tony; added to fetch the gameinfo file and mount additional content.
+
+
+// see: https://developer.valvesoftware.com/wiki/Mounting_multiple_games
 static void MountAdditionalContent()
 {
-	KeyValues *pMainFile, *pFileSystemInfo;
-	int nExtraContentId = -1;
-	
-	pMainFile = new KeyValues( "gameinfo.txt" );
-	if ( pMainFile->LoadFromFile( filesystem, VarArgs("%s/gameinfo.txt", engine->GetGameDirectory()), "MOD" ) )
+	KeyValues *pMainFile = new KeyValues( "gameinfo.txt" );
+#ifndef _WINDOWS
+	// case sensitivity
+	pMainFile->LoadFromFile( filesystem, "GameInfo.txt", "MOD" );
+	if (!pMainFile)
+#endif
+	pMainFile->LoadFromFile( filesystem, "gameinfo.txt", "MOD" );
+ 
+	if (pMainFile)
 	{
-		pFileSystemInfo = pMainFile->FindKey( "FileSystem" );
+		KeyValues* pFileSystemInfo = pMainFile->FindKey( "FileSystem" );
 		if (pFileSystemInfo)
-			nExtraContentId = pFileSystemInfo->GetInt( "AdditionalContentId", -1 );
-	}
+			for ( KeyValues *pKey = pFileSystemInfo->GetFirstSubKey(); pKey; pKey = pKey->GetNextKey() )
+			{
+				if ( strcmp(pKey->GetName(),"AdditionalContentId") == 0 )
+				{
+					int appid = abs(pKey->GetInt());
+					if (appid)
+						if( filesystem->MountSteamContent(-appid) != FILESYSTEM_MOUNT_OK )
+							Warning("Unable to mount extra content with appId: %i\n", appid);
+				}
+			}
+	}	
 	pMainFile->deleteThis();
-
-	if (nExtraContentId != -1)
-	{
-		if( filesystem->MountSteamContent(-nExtraContentId) != FILESYSTEM_MOUNT_OK )
-			Warning("Unable to mount extra content with appId: %i\n", nExtraContentId);
-	}
 }
 //-----------------------------------------------------------------------------
 // Purpose: Called when the DLL is first loaded.
