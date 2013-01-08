@@ -34,9 +34,14 @@ extern TunableVar hal_handyScalePitch_f;
 extern TunableVar hal_handyScaleRoll_f;
 extern TunableVar hal_handyScaleYaw_f;
 extern TunableVar hal_handyScaleOffsets_f;
+extern TunableVar hal_handySmoothing_sec;
+
 extern TunableVar hal_handyMaxPitch_deg;
 extern TunableVar hal_handyMaxYaw_deg;
-extern TunableVar hal_handySmoothing_sec;
+extern TunableVar hal_handyMaxRoll_deg;
+extern TunableVar hal_handyMaxVert_cm;
+extern TunableVar hal_handyMaxSidew_cm;
+
 
 // general settings:
 extern TunableVar hal_adaptSmoothConfSample_sec;
@@ -67,7 +72,7 @@ public:
 
 		float val = (m_parent) ? m_parent->Update(headData) : headData.h_headPos[m_dataIndex];
 		m_pValue = Update(val);
-		DevMsg("%s: %6.2f\n", GetClass(), m_pValue);
+
 		return m_pValue;
 	}
 
@@ -250,6 +255,21 @@ private:
 	float m_prevVal;
 	
 	TunableVar *m_duration;
+};
+
+
+
+
+class LimitFilter: public Filter
+{
+public:
+	LimitFilter(TunableVar *limit, Filter *parent = NULL)
+		: Filter(parent), m_limit(limit) {}
+
+	virtual float Update(float value);
+
+private:
+	TunableVar *m_limit;
 };
 
 

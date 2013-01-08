@@ -109,9 +109,9 @@ void FaceAPI::SetData(smEngineHeadPoseData head_pose)
 	if(!engine_handle || m_shuttingDown)
 		return;
 
-	m_data[m_nextData].h_headPos[FACEAPI_VERT]		= METERS_TO_SOURCE(head_pose.head_pos.y);
-	m_data[m_nextData].h_headPos[FACEAPI_SIDEW]		= -METERS_TO_SOURCE(head_pose.head_pos.x);
-	m_data[m_nextData].h_headPos[FACEAPI_DEPTH]		= METERS_TO_SOURCE(head_pose.head_pos.z);
+	m_data[m_nextData].h_headPos[FACEAPI_VERT]		= METERS_TO_CMS(head_pose.head_pos.y);
+	m_data[m_nextData].h_headPos[FACEAPI_SIDEW]		= -METERS_TO_CMS(head_pose.head_pos.x);
+	m_data[m_nextData].h_headPos[FACEAPI_DEPTH]		= METERS_TO_CMS(head_pose.head_pos.z);
 	m_data[m_nextData].h_headPos[FACEAPI_YAW]		= RAD_TO_DEG(head_pose.head_rot.y_rads);
 	m_data[m_nextData].h_headPos[FACEAPI_PITCH]		= RAD_TO_DEG(head_pose.head_rot.x_rads);
 	m_data[m_nextData].h_headPos[FACEAPI_ROLL]		= RAD_TO_DEG(head_pose.head_rot.z_rads);

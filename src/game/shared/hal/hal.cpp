@@ -52,39 +52,44 @@ void HALTechnique::Init()
 
 	// change this to alter how each aspect of the head data is filtered
 	m_filteredHeadData[FILTER_ROLL] =
-			new FadeFilter(&hal_fadingDuration_s, 
-				new ScaleFilter(&hal_handyScaleRoll_f, 
-					new ScaleFilter(&hal_handyScale_f,
-						new ScaleFilter(m_handyScaleAuto,
-							new SmoothFilter(m_handySmoothing_auto, meanRoll) ))));
+			new FadeFilter(&hal_fadingDuration_s,
+				new LimitFilter(&hal_handyMaxRoll_deg, 
+					new ScaleFilter(&hal_handyScaleRoll_f, 
+						new ScaleFilter(&hal_handyScale_f,
+							new ScaleFilter(m_handyScaleAuto,
+								new SmoothFilter(m_handySmoothing_auto, meanRoll) )))));
 
 	m_filteredHeadData[FILTER_PITCH] =
 			new FadeFilter(&hal_fadingDuration_s, 
-				new ScaleFilter(&hal_handyScalePitch_f, 
-					new ScaleFilter(&hal_handyScale_f,
-						new ScaleFilter(m_handyScaleAuto,
-							new SmoothFilter(m_handySmoothing_auto, meanPitch) ))));
+				new LimitFilter(&hal_handyMaxPitch_deg,
+					new ScaleFilter(&hal_handyScalePitch_f, 
+						new ScaleFilter(&hal_handyScale_f,
+							new ScaleFilter(m_handyScaleAuto,
+								new SmoothFilter(m_handySmoothing_auto, meanPitch) )))));
 	
 	m_filteredHeadData[FILTER_YAW] =
 			new FadeFilter(&hal_fadingDuration_s, 
-				new ScaleFilter(&hal_handyScaleYaw_f, 
-					new ScaleFilter(&hal_handyScale_f,
-						new ScaleFilter(m_handyScaleAuto,
-							new SmoothFilter(m_handySmoothing_auto, meanYaw) ))));
+				new LimitFilter(&hal_handyMaxYaw_deg,
+					new ScaleFilter(&hal_handyScaleYaw_f, 
+						new ScaleFilter(&hal_handyScale_f,
+							new ScaleFilter(m_handyScaleAuto,
+								new SmoothFilter(m_handySmoothing_auto, meanYaw) )))));
 	
 	m_filteredHeadData[FILTER_VERT] =
 			new FadeFilter(&hal_fadingDuration_s, 
-				new ScaleFilter(&hal_handyScaleOffsets_f, 
-					new ScaleFilter(&hal_handyScale_f,
-						new ScaleFilter(m_handyScaleAuto,
-							new SmoothFilter(m_handySmoothing_auto, meanVert) ))));
+				new LimitFilter(&hal_handyMaxVert_cm,
+					new ScaleFilter(&hal_handyScaleOffsets_f, 
+						new ScaleFilter(&hal_handyScale_f,
+							new ScaleFilter(m_handyScaleAuto,
+								new SmoothFilter(m_handySmoothing_auto, meanVert) )))));
 	
 	m_filteredHeadData[FILTER_SIDEW] = 
 			new FadeFilter(&hal_fadingDuration_s, 
-				new ScaleFilter(&hal_handyScaleOffsets_f, 
-					new ScaleFilter(&hal_handyScale_f,
-						new ScaleFilter(m_handyScaleAuto,
-							new SmoothFilter(m_handySmoothing_auto, meanSidew) ))));
+				new LimitFilter(&hal_handyMaxSidew_cm, 
+					new ScaleFilter(&hal_handyScaleOffsets_f, 
+						new ScaleFilter(&hal_handyScale_f,
+							new ScaleFilter(m_handyScaleAuto,
+								new SmoothFilter(m_handySmoothing_auto, meanSidew) )))));
 
 	m_filteredHeadData[FILTER_LEAN] =
 			new FadeFilter(&hal_fadingDuration_s,
@@ -134,9 +139,9 @@ void HALTechnique::Update()
 		
 		DevMsg("adapt: %6.2f, handy: %6.2f\n", adapt, m_handyScaleAuto->GetFloat());
 
-		//for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
-		//	m_filteredHeadData[i]->Update(data);
-		m_filteredHeadData[FILTER_LEAN]->Update(data);
+		//m_filteredHeadData[FILTER_LEAN]->Update(data);
+		for(int i = 0; i < sizeof(m_filteredHeadData)/sizeof(Filter*); i++)
+			m_filteredHeadData[i]->Update(data);
 	}
 	else
 	{

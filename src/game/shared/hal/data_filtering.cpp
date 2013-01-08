@@ -37,9 +37,13 @@ CREATE_CONVAR(handyScalePitch_f,					1, 0, 3);
 CREATE_CONVAR(handyScaleRoll_f,						1, 0, 3);
 CREATE_CONVAR(handyScaleYaw_f,						1, 0, 3);
 CREATE_CONVAR(handyScaleOffsets_f,					1, 0, 3);
-CREATE_CONVAR(handyMaxPitch_deg,					0, 0, 90);
-CREATE_CONVAR(handyMaxYaw_deg,						0, 0, 90);
 CREATE_CONVAR(handySmoothing_sec,					0.2, 0, 1);
+
+CREATE_CONVAR(handyMaxPitch_deg,					30, 0, 180);
+CREATE_CONVAR(handyMaxYaw_deg,						45, 0, 180);
+CREATE_CONVAR(handyMaxRoll_deg,						30, 0, 180);
+CREATE_CONVAR(handyMaxVert_cm,						10, 0, 50);
+CREATE_CONVAR(handyMaxSidew_cm,						15, 0, 50);
 
 // Adpative smoothing - we smooth more when the confidence is low
 CREATE_CONVAR(adaptSmoothConfSample_sec,			0.2, 0, 1);
@@ -247,3 +251,38 @@ float FadeFilter::Update()
 	return (1 - p) * m_prevVal;
 }
 
+
+
+// LimitFilter
+
+float LimitFilter::Update(float value)
+{
+	if(m_limit->GetFloat() == 0.0f)
+		return value;
+
+	// Simple limit:
+	//return clamp(value, -m_limit->GetFloat(), m_limit->GetFloat());
+
+	// Ease Out limit:
+	// We apply a ease-out curve, derived from the ease in/ease out curve: 3x^2 - 2x^3
+	// The ease-out curve is: 6(x/3 + 0.5)^2 - 4(x/3 + 0.5)^3 - 1	[0 <= x <= 1.5]
+	//
+	// |                        .              +                  
+	// |                     .     +                                          
+	// |                  .                                                
+	// |               +                                                   
+	// |            .                                                     
+	// |         +                                                       
+	// |      .                                                         
+	// |   +                                                           
+	// |.                      1.0            1.5                      
+	//  ------------------------|--------------|------
+	//
+	if(value == 0.0f)
+		return 0.0f;
+
+	float range = m_limit->GetFloat() / 1.5;
+	float x = min(1.5, fabs(value) / range);
+	x = x/3 + 0.5;
+	return (6*x*x - 4*x*x*x - 1) * range * SIGN_OF(value);
+}
